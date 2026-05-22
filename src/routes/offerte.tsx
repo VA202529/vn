@@ -65,8 +65,7 @@ function OffertePage() {
       toast.success("Je offerteaanvraag is ontvangen.");
       setSent(true);
     } catch {
-      toast.success("Je offerteaanvraag is ontvangen.");
-      setSent(true);
+      toast.error("Versturen lukte niet. Probeer het opnieuw.");
     } finally {
       setSubmitting(false);
     }

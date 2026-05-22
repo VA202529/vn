@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Section, Eyebrow } from "@/components/site/Section";
 import { useSiteData } from "@/hooks/use-site-data";
-import { getPortfolioId, toneFor } from "@/lib/api";
+import { getPortfolioId, imageSource, toneFor } from "@/lib/api";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   head: ({ params }) => ({
@@ -50,7 +50,7 @@ function ProjectDetail() {
   const others = items.filter((p) => getPortfolioId(p) !== slug).slice(0, 2);
   const tone = toneFor(slug);
   const images = project.images || [];
-  const cover = images[activeImg];
+  const cover = imageSource(images[activeImg]);
 
   return (
     <>
@@ -102,7 +102,7 @@ function ProjectDetail() {
                   i === activeImg ? "border-foreground" : "border-border hover:border-foreground/30"
                 }`}
               >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img src={imageSource(img)} alt="" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

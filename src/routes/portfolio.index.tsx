@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { Section, Eyebrow } from "@/components/site/Section";
 import { useSiteData } from "@/hooks/use-site-data";
-import { getPortfolioId, toneFor, type PortfolioItem } from "@/lib/api";
+import { getPortfolioId, imageSource, toneFor, type PortfolioItem } from "@/lib/api";
 
 export const Route = createFileRoute("/portfolio/")({
   head: () => ({
@@ -83,7 +83,7 @@ function PortfolioPage() {
             {filtered.map((c, i) => {
               const id = getPortfolioId(c);
               const tone = toneFor(id);
-              const cover = c.images?.[0];
+              const cover = imageSource(c.images?.[0]);
               return (
                 <Link
                   key={id}
@@ -111,9 +111,7 @@ function PortfolioPage() {
                       ) : (
                         <div className="absolute inset-0 grid place-items-center">
                           <div className="text-center px-6">
-                            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-                              Project
-                            </p>
+                            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Geen afbeelding</p>
                             <p className="mt-2 text-xl sm:text-2xl font-semibold tracking-tight">{c.titel}</p>
                           </div>
                         </div>

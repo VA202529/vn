@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Section, Eyebrow } from "@/components/site/Section";
 import { useSiteData } from "@/hooks/use-site-data";
 import { ProductRequestDialog } from "@/components/site/ProductRequestDialog";
-import { formatPriceFrom, getProductId } from "@/lib/api";
+import { formatPriceFrom, getProductId, imageSource } from "@/lib/api";
 
 export const Route = createFileRoute("/producten/$slug")({
   head: () => ({
@@ -49,7 +49,7 @@ function ProductDetail() {
 
   const related = items.filter((p) => getProductId(p) !== slug).slice(0, 3);
   const images = product.images || [];
-  const cover = images[activeImg];
+  const cover = imageSource(images[activeImg]);
   const price = formatPriceFrom(product.prijs_vanaf);
   const monthly = formatPriceFrom(product.onderhoud_per_maand);
 
@@ -103,7 +103,7 @@ function ProductDetail() {
                   i === activeImg ? "border-foreground" : "border-border hover:border-foreground/30"
                 }`}
               >
-                <img src={img} alt="" className="w-full h-full object-cover" />
+                <img src={imageSource(img)} alt="" className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

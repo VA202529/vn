@@ -1,124 +1,244 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Section, Eyebrow } from "@/components/site/Section";
+import { Eyebrow, Section } from "@/components/site/Section";
+import { useSiteData } from "@/hooks/use-site-data";
+import {
+  formatPriceFrom,
+  getPortfolioId,
+  getProductId,
+  imageSource,
+} from "@/lib/api";
 
 export const Route = createFileRoute("/")({ component: Index });
 
-const services = [
-  { n: "01", t: "Dynamische websites", d: "Maatwerk platformen met admin-dashboard, volledige controle over data." },
-  { n: "02", t: "Geautomatiseerde systemen", d: "E-mailflows, herinneringen en workflows die uw team uren besparen." },
-  { n: "03", t: "Verkoopplatformen", d: "Van automotive voorraad tot retail — systemen die verkopen." },
-  { n: "04", t: "Branding & design", d: "Grafisch ontwerp en positionering die uw merk onderscheidend maken." },
-];
-
-const branches = [
-  "Automotive", "Autodealers", "Kerken", "Stichtingen",
-  "Goede doelen", "Kapperszaken", "Voedselwinkels", "MKB",
-];
-
 function Index() {
+  const { data, isLoading } = useSiteData();
+  const company = data?.bedrijfsgegevens;
+  const products = (data?.producten || []).slice(0, 3);
+  const portfolio = (data?.portfolio || []).slice(0, 3);
+  const name = company?.bedrijfsnaam || "Van Appiah";
+  const emails = [company?.email_1, company?.email_2, company?.email_3].filter(Boolean);
+  const openingstijden = [
+    company?.openingstijd_1,
+    company?.openingstijd_2,
+    company?.openingstijd_3,
+  ].filter(Boolean);
+  const heroImage = portfolio.map((item) => imageSource(item.images?.[0])).find(Boolean);
+
   return (
     <>
-      {/* HERO */}
-      <Section className="pt-16 md:pt-24 pb-20">
-        <div className="max-w-4xl">
-          <Eyebrow>Digital infrastructure & automation</Eyebrow>
-          <h1 className="mt-6 text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-[0.95]">
-            Wij bouwen <span className="italic font-normal">systemen</span> die werken,
-            <br />verkopen en groeien.
-          </h1>
-          <p className="mt-8 text-lg md:text-xl text-muted-foreground max-w-2xl">
-            Van Appiah ontwikkelt dynamische websites, maatwerk applicaties en geautomatiseerde processen voor groeiende bedrijven. Niet voor klanten — mét klanten.
-          </p>
-          <div className="mt-10 flex flex-wrap gap-3">
-            <Link to="/contact" className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3 text-sm font-medium hover:opacity-90">
-              Start een project <span>→</span>
-            </Link>
-            <Link to="/portfolio" className="inline-flex items-center gap-2 rounded-full border border-border bg-surface px-6 py-3 text-sm font-medium hover:bg-surface-muted">
-              Bekijk portfolio
-            </Link>
-          </div>
-        </div>
-
-        {/* big visual block */}
-        <div className="mt-20 relative rounded-[2rem] border border-border overflow-hidden">
-          <div className="grain absolute inset-0 opacity-60" />
-          <div className="relative grid md:grid-cols-3 gap-px bg-border">
-            {[
-              { k: "5+ jr", l: "Ervaring met digitale systemen" },
-              { k: "150+", l: "Projecten opgeleverd" },
-              { k: "24/7", l: "Geautomatiseerde flows" },
-            ].map((s) => (
-              <div key={s.l} className="bg-background p-8 md:p-10">
-                <p className="text-5xl md:text-6xl font-bold tracking-tight">{s.k}</p>
-                <p className="mt-3 text-sm text-muted-foreground">{s.l}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </Section>
-
-      {/* SERVICES */}
-      <Section className="py-20">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <Eyebrow>Diensten</Eyebrow>
-            <h2 className="mt-4 text-3xl md:text-5xl font-semibold tracking-tight">Wat wij doen</h2>
-          </div>
-          <Link to="/diensten" className="hidden sm:inline text-sm hover:underline">Alle diensten →</Link>
-        </div>
-        <div className="grid md:grid-cols-2 gap-4">
-          {services.map((s) => (
-            <div key={s.n} className="group rounded-3xl border border-border p-8 hover:bg-surface transition-colors">
-              <div className="flex items-start justify-between">
-                <span className="font-mono text-xs text-muted-foreground">{s.n}</span>
-                <span className="size-8 rounded-full border border-border grid place-items-center text-sm group-hover:bg-foreground group-hover:text-background transition-colors">→</span>
-              </div>
-              <h3 className="mt-10 text-2xl font-semibold tracking-tight">{s.t}</h3>
-              <p className="mt-3 text-muted-foreground">{s.d}</p>
-            </div>
-          ))}
-        </div>
-      </Section>
-
-      {/* PHILOSOPHY */}
-      <Section className="py-20">
-        <div className="rounded-[2.5rem] bg-foreground text-background p-10 md:p-20 relative overflow-hidden">
+      <Section className="pt-10 sm:pt-16 md:pt-24 pb-16">
+        <div className="relative overflow-hidden rounded-[2rem] border border-border bg-foreground text-background">
+          {heroImage && (
+            <img
+              src={heroImage}
+              alt=""
+              className="absolute inset-0 h-full w-full object-cover opacity-25"
+            />
+          )}
           <div className="grain absolute inset-0 opacity-20" />
-          <div className="relative max-w-3xl">
-            <p className="font-mono text-xs uppercase tracking-widest opacity-60">Onze filosofie</p>
-            <h2 className="mt-6 text-4xl md:text-6xl font-semibold tracking-tight leading-[1.05]">
-              Wij bouwen <span className="italic">met</span> klanten, niet voor hen.
+          <div className="relative max-w-4xl px-6 py-14 sm:px-10 sm:py-20 md:px-16 md:py-24">
+            <Eyebrow className="text-background/65">VA</Eyebrow>
+            <h1 className="mt-5 text-5xl font-semibold tracking-tight leading-[0.95] sm:text-6xl md:text-8xl">
+              {name}
+            </h1>
+            <p className="mt-6 max-w-2xl text-xl font-medium text-background/95">
+              {company?.slogan || "Digitale oplossingen met een luxe zakelijke afwerking."}
+            </p>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-background/75 sm:text-lg">
+              {company?.beschrijving ||
+                "Vertel waar u naartoe wilt, dan bekijken we welke digitale oplossing daarbij past."}
+            </p>
+            <div className="mt-9 flex flex-wrap gap-3">
+              <Link
+                to="/contact"
+                className="inline-flex min-h-11 items-center rounded-full bg-background px-6 py-3 text-sm font-medium text-foreground hover:opacity-90"
+              >
+                Neem contact op
+              </Link>
+              <Link
+                to="/producten"
+                className="inline-flex min-h-11 items-center rounded-full border border-background/25 bg-background/10 px-6 py-3 text-sm font-medium text-background hover:bg-background/15"
+              >
+                Bekijk producten
+              </Link>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      <Section className="py-10 md:py-16">
+        <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
+          <div>
+            <Eyebrow>Bedrijfsinformatie</Eyebrow>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight md:text-5xl">
+              Direct contact met {name}.
             </h2>
-            <p className="mt-8 text-lg opacity-80 max-w-xl">
-              Een website moet meer zijn dan een online visitekaartje. Het moet een systeem zijn dat werkt, verkoopt en groeit. Van het eerste idee tot duurzame groei — wij staan náást u.
+            <p className="mt-4 max-w-xl text-muted-foreground">
+              Kies het kanaal dat bij uw vraag past en zet de eerste stap naar een helder digitaal traject.
             </p>
           </div>
-        </div>
-      </Section>
-
-      {/* BRANCHES */}
-      <Section className="py-20">
-        <Eyebrow>Branches</Eyebrow>
-        <h2 className="mt-4 text-3xl md:text-5xl font-semibold tracking-tight max-w-2xl">Ervaring in diverse sectoren</h2>
-        <div className="mt-12 flex flex-wrap gap-3">
-          {branches.map((b) => (
-            <span key={b} className="rounded-full border border-border bg-surface px-5 py-3 text-sm font-medium">{b}</span>
-          ))}
-        </div>
-      </Section>
-
-      {/* CTA */}
-      <Section className="py-20">
-        <div className="rounded-[2rem] border border-border p-10 md:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-semibold tracking-tight max-w-xl">Klaar voor de volgende stap?</h2>
-            <p className="mt-3 text-muted-foreground">Plan een vrijblijvend adviesgesprek.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {company?.adres && <Info label="Adres" value={company.adres} />}
+            {company?.telefoonnummer && (
+              <Info
+                label="Telefoon"
+                value={company.telefoonnummer}
+                href={`tel:${company.telefoonnummer.replace(/\s/g, "")}`}
+              />
+            )}
+            {emails.map((email) => (
+              <Info key={email} label="E-mail" value={email as string} href={`mailto:${email}`} />
+            ))}
+            {openingstijden.length > 0 && (
+              <Info label="Openingstijden" value={openingstijden.join(" / ")} />
+            )}
           </div>
-          <Link to="/contact" className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3 text-sm font-medium hover:opacity-90 whitespace-nowrap">
-            Neem contact op <span>→</span>
-          </Link>
         </div>
+      </Section>
+
+      <Section className="py-12 md:py-16">
+        <CollectionHeader
+          eyebrow="Producten"
+          title="Zakelijke oplossingen"
+          to="/producten"
+          linkLabel="Alle producten"
+        />
+        {isLoading ? (
+          <p className="mt-8 text-muted-foreground">Producten laden...</p>
+        ) : products.length > 0 ? (
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {products.map((product) => {
+              const id = getProductId(product);
+              const image = imageSource(product.images?.[0]);
+              return (
+                <Link
+                  key={id}
+                  to="/producten/$slug"
+                  params={{ slug: id }}
+                  className="group overflow-hidden rounded-[1.5rem] border border-border bg-surface transition-colors hover:bg-surface-muted"
+                >
+                  <Media src={image} alt={product.titel || "Product"} />
+                  <div className="p-5">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                      {product.categorie || "Product"}
+                    </p>
+                    <h3 className="mt-3 text-xl font-semibold tracking-tight">{product.titel}</h3>
+                    {product.beschrijving && (
+                      <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+                        {product.beschrijving}
+                      </p>
+                    )}
+                    {formatPriceFrom(product.prijs_vanaf) && (
+                      <p className="mt-3 text-sm font-semibold">
+                        {formatPriceFrom(product.prijs_vanaf)}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="mt-8 text-muted-foreground">Nog geen producten zichtbaar.</p>
+        )}
+      </Section>
+
+      <Section className="py-12 md:py-20">
+        <CollectionHeader
+          eyebrow="Portfolio"
+          title="Recent werk"
+          to="/portfolio"
+          linkLabel="Volledig portfolio"
+        />
+        {isLoading ? (
+          <p className="mt-8 text-muted-foreground">Portfolio laden...</p>
+        ) : portfolio.length > 0 ? (
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
+            {portfolio.map((item) => {
+              const id = getPortfolioId(item);
+              return (
+                <Link
+                  key={id}
+                  to="/portfolio/$slug"
+                  params={{ slug: id }}
+                  className="overflow-hidden rounded-[1.5rem] border border-border transition-colors hover:bg-surface"
+                >
+                  <Media src={imageSource(item.images?.[0])} alt={item.titel || "Portfolio"} />
+                  <div className="p-5">
+                    <p className="text-xs uppercase tracking-widest text-muted-foreground">
+                      {item.categorie || "Project"}
+                    </p>
+                    <h3 className="mt-3 text-xl font-semibold tracking-tight">{item.titel}</h3>
+                    {item.klantnaam && <p className="mt-1 text-sm">{item.klantnaam}</p>}
+                    {item.beschrijving && (
+                      <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
+                        {item.beschrijving}
+                      </p>
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="mt-8 text-muted-foreground">Nog geen portfolio-items zichtbaar.</p>
+        )}
       </Section>
     </>
+  );
+}
+
+function CollectionHeader({
+  eyebrow,
+  title,
+  to,
+  linkLabel,
+}: {
+  eyebrow: string;
+  title: string;
+  to: "/producten" | "/portfolio";
+  linkLabel: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <Eyebrow>{eyebrow}</Eyebrow>
+        <h2 className="mt-4 text-3xl font-semibold tracking-tight md:text-5xl">{title}</h2>
+      </div>
+      <Link to={to} className="text-sm font-medium hover:underline">
+        {linkLabel}
+      </Link>
+    </div>
+  );
+}
+
+function Media({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="relative aspect-[4/3] border-b border-border bg-gradient-to-br from-white to-zinc-100">
+      {src ? (
+        <img src={src} alt={alt} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+      ) : (
+        <div className="absolute inset-0 grid place-items-center text-sm text-muted-foreground">
+          Geen afbeelding
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Info({ label, value, href }: { label: string; value: string; href?: string }) {
+  const content = (
+    <>
+      <p className="text-xs uppercase tracking-widest text-muted-foreground">{label}</p>
+      <p className="mt-2 break-words text-sm font-medium">{value}</p>
+    </>
+  );
+
+  return href ? (
+    <a href={href} className="rounded-2xl border border-border p-4 hover:bg-surface">
+      {content}
+    </a>
+  ) : (
+    <div className="rounded-2xl border border-border p-4">{content}</div>
   );
 }

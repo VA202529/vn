@@ -45,8 +45,7 @@ function ContactPage() {
       toast.success("Bedankt, je bericht is verzonden.");
       setSent(true);
     } catch {
-      toast.success("Bedankt, je bericht is verzonden.");
-      setSent(true);
+      toast.error("Versturen lukte niet. Probeer het opnieuw.");
     } finally {
       setSubmitting(false);
     }
@@ -54,6 +53,12 @@ function ContactPage() {
 
   const emails = [bg?.email_1, bg?.email_2, bg?.email_3].filter(Boolean) as string[];
   const openingstijden = [bg?.openingstijd_1, bg?.openingstijd_2, bg?.openingstijd_3].filter(Boolean) as string[];
+  const online = [
+    bg?.website && { label: "Website", value: bg.website, href: hrefFor(bg.website) },
+    bg?.instagram && { label: "Instagram", value: bg.instagram, href: hrefFor(bg.instagram) },
+    bg?.tiktok && { label: "TikTok", value: bg.tiktok, href: hrefFor(bg.tiktok) },
+    bg?.linkedin && { label: "LinkedIn", value: bg.linkedin, href: hrefFor(bg.linkedin) },
+  ].filter(Boolean) as { label: string; value: string; href: string }[];
 
   return (
     <>
@@ -128,6 +133,9 @@ function ContactPage() {
               <InfoCard label="Telefoon" value={bg.telefoonnummer} href={`tel:${bg.telefoonnummer.replace(/\s/g, "")}`} />
             )}
             {bg?.adres && <InfoCard label="Adres" value={bg.adres} />}
+            {online.map((item) => (
+              <InfoCard key={item.label} label={item.label} value={item.value} href={item.href} />
+            ))}
             {openingstijden.length > 0 && (
               <div className="rounded-3xl border border-border p-6">
                 <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground">Openingstijden</p>
@@ -192,4 +200,8 @@ function InfoCard({ label, value, href }: { label: string; value: string; href?:
   ) : (
     <div className="rounded-3xl border border-border p-6">{content}</div>
   );
+}
+
+function hrefFor(value: string): string {
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
 }

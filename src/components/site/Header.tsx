@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useSiteData } from "@/hooks/use-site-data";
 
 const nav = [
   { to: "/", label: "Home" },
@@ -13,12 +14,15 @@ const nav = [
 
 export function Header() {
   const [open, setOpen] = useState(false);
+  const { data } = useSiteData();
+  const bedrijfsnaam = data?.bedrijfsgegevens?.bedrijfsnaam || "Van Appiah";
+
   return (
     <header className="sticky top-4 z-50 px-4">
       <div className="mx-auto max-w-6xl glass-strong rounded-full px-4 sm:px-6 h-14 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 group">
           <span className="size-7 rounded-full bg-foreground text-background grid place-items-center text-[11px] font-semibold tracking-tight">VA</span>
-          <span className="font-semibold tracking-tight">Van Appiah</span>
+          <span className="font-semibold tracking-tight">{bedrijfsnaam}</span>
         </Link>
         <nav className="hidden md:flex items-center gap-1">
           {nav.map((n) => (

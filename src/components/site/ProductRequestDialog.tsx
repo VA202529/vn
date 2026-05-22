@@ -45,9 +45,7 @@ export function ProductRequestDialog({ product, open, onOpenChange }: Props) {
       toast.success("Je aanvraag is ontvangen.");
       onOpenChange(false);
     } catch {
-      // Apps Script kan response blokkeren — request is vaak toch verwerkt.
-      toast.success("Je aanvraag is ontvangen.");
-      onOpenChange(false);
+      toast.error("Versturen lukte niet. Probeer het opnieuw.");
     } finally {
       setSubmitting(false);
     }

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { Section, Eyebrow } from "@/components/site/Section";
 import { useSiteData } from "@/hooks/use-site-data";
 import { ProductRequestDialog } from "@/components/site/ProductRequestDialog";
-import { formatPriceFrom, getProductId, type ProductItem } from "@/lib/api";
+import { formatPriceFrom, getProductId, imageSource, type ProductItem } from "@/lib/api";
 
 export const Route = createFileRoute("/producten/")({
   head: () => ({
@@ -85,7 +85,7 @@ function ProductenPage() {
             {filtered.map((p) => {
               const id = getProductId(p);
               const price = formatPriceFrom(p.prijs_vanaf);
-              const cover = p.images?.[0];
+              const cover = imageSource(p.images?.[0]);
               return (
                 <article
                   key={id}
@@ -108,19 +108,9 @@ function ProductenPage() {
                           className="absolute inset-0 w-full h-full object-cover"
                         />
                       ) : (
-                        <div className="absolute inset-4 rounded-xl border border-border bg-background/70 backdrop-blur-sm p-3 flex flex-col gap-2">
-                          <div className="flex items-center gap-1.5">
-                            <span className="size-1.5 rounded-full bg-foreground/30" />
-                            <span className="size-1.5 rounded-full bg-foreground/20" />
-                            <span className="size-1.5 rounded-full bg-foreground/10" />
+                          <div className="absolute inset-4 rounded-xl border border-border bg-background/70 backdrop-blur-sm grid place-items-center p-3 text-sm text-muted-foreground">
+                            Geen afbeelding
                           </div>
-                          <div className="flex-1 grid grid-cols-3 gap-1.5 mt-1">
-                            <div className="rounded-md bg-foreground/5" />
-                            <div className="rounded-md bg-foreground/10 col-span-2" />
-                            <div className="rounded-md bg-foreground/10 col-span-2" />
-                            <div className="rounded-md bg-foreground/5" />
-                          </div>
-                        </div>
                       )}
                     </div>
 
@@ -129,6 +119,11 @@ function ProductenPage() {
                       <p className="mt-2 text-sm text-muted-foreground line-clamp-3">{p.beschrijving}</p>
                     )}
                     {price && <p className="mt-3 text-sm font-semibold">{price}</p>}
+                    {p.onderhoud_uitleg && (
+                      <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                        {p.onderhoud_uitleg}
+                      </p>
+                    )}
                   </Link>
 
                   <div className="mt-5 pt-4 border-t border-border flex items-center justify-between gap-3">

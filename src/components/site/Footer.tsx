@@ -36,9 +36,7 @@ export function Footer() {
       setNaam("");
       setEmail("");
     } catch {
-      toast.success("Je bent aangemeld voor updates.");
-      setNaam("");
-      setEmail("");
+      toast.error("Aanmelden lukte niet. Probeer het opnieuw.");
     } finally {
       setSubscribing(false);
     }
@@ -51,7 +49,7 @@ export function Footer() {
           <div className="md:col-span-5">
             <div className="flex items-center gap-2 mb-4">
               <span className="size-8 rounded-full bg-foreground text-background grid place-items-center text-xs font-semibold">
-                {bedrijfsnaam.charAt(0)}
+                VA
               </span>
               <span className="font-semibold text-lg">{bedrijfsnaam}</span>
             </div>
