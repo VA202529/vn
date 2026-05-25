@@ -4,12 +4,22 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { postAction } from "@/lib/api";
 import { useSiteData } from "@/hooks/use-site-data";
+import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
   head: () => ({
     meta: [
-      { title: "Contact — Van Appiah" },
-      { name: "description", content: "Neem contact op met Van Appiah voor een vrijblijvend adviesgesprek." },
+      ...seo({
+        title: "Contact Van Appiah | Website en marketing Amsterdam-Noord",
+        description:
+          "Neem contact op met Van Appiah voor een website, webshop, branding of marketingtraject in Amsterdam-Noord en omgeving.",
+        path: "/contact",
+        keywords: ["contact Van Appiah", "website laten maken Amsterdam Noord", "marketing bureau Amsterdam Noord"],
+        jsonLd: breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Contact", path: "/contact" },
+        ]),
+      }).meta,
     ],
   }),
   component: ContactPage,
@@ -68,7 +78,7 @@ function ContactPage() {
           Laten we samen<br />iets bouwen.
         </h1>
         <p className="mt-5 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl">
-          Vertel ons over uw project, idee of vraag. Wij reageren binnen één werkdag.
+          Vertel ons over uw website, webshop, branding of marketingvraag. Wij reageren binnen een werkdag.
         </p>
       </Section>
 

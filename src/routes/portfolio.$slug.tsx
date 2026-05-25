@@ -1,14 +1,35 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { Section, Eyebrow } from "@/components/site/Section";
-import { useSiteData } from "@/hooks/use-site-data";
-import { getPortfolioId, imageSource, toneFor } from "@/lib/api";
+import { LazySheetImage } from "@/components/site/LazySheetImage";
+import { usePortfolioDetail } from "@/hooks/use-site-data";
+import {
+  getPortfolioId,
+  imageSource,
+  matchesPublicId,
+  toneFor,
+  type PageResult,
+  type PortfolioItem,
+  type SiteData,
+} from "@/lib/api";
+import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   head: ({ params }) => ({
     meta: [
-      { title: `Project — Van Appiah` },
-      { name: "description", content: `Bekijk dit project (${params.slug}) van Van Appiah.` },
+      ...seo({
+        title: "Webdesign project bekijken | Van Appiah",
+        description:
+          "Bekijk dit project van Van Appiah en ontdek hoe websites, branding en digitale oplossingen ondernemers helpen groeien.",
+        path: `/portfolio/${params.slug}`,
+        keywords: ["webdesign project Amsterdam", "portfolio Van Appiah", "website ontwerp Amsterdam-Noord"],
+        jsonLd: breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Portfolio", path: "/portfolio" },
+          { name: params.slug, path: `/portfolio/${params.slug}` },
+        ]),
+      }).meta,
     ],
   }),
   component: ProjectDetail,
@@ -16,12 +37,16 @@ export const Route = createFileRoute("/portfolio/$slug")({
 
 function ProjectDetail() {
   const { slug } = Route.useParams();
-  const { data, isLoading, isError } = useSiteData();
-  const items = data?.portfolio ?? [];
-  const project = items.find((p) => getPortfolioId(p) === slug);
+  const queryClient = useQueryClient();
+  const cachedProjects = useMemo(() => getCachedProjects(queryClient), [queryClient]);
+  const cachedProject = useMemo(
+    () => cachedProjects.find((project) => matchesPublicId(project, slug, getPortfolioId)),
+    [cachedProjects, slug],
+  );
+  const { data: project, isLoading, isError } = usePortfolioDetail(slug, cachedProject);
   const [activeImg, setActiveImg] = useState(0);
 
-  if (isLoading) {
+  if (!project && isLoading) {
     return (
       <Section className="py-24 text-center">
         <p className="text-muted-foreground">Project wordt geladen…</p>
@@ -47,7 +72,7 @@ function ProjectDetail() {
     );
   }
 
-  const others = items.filter((p) => getPortfolioId(p) !== slug).slice(0, 2);
+  const others = cachedProjects.filter((p) => !matchesPublicId(p, slug, getPortfolioId)).slice(0, 2);
   const tone = toneFor(slug);
   const images = project.images || [];
   const cover = imageSource(images[activeImg]);
@@ -79,7 +104,15 @@ function ProjectDetail() {
           className={`rounded-[1.75rem] sm:rounded-[2rem] border border-border bg-gradient-to-br ${tone} relative overflow-hidden aspect-[16/9] sm:aspect-[2/1]`}
         >
           {cover ? (
-            <img src={cover} alt={project.titel || "Project"} className="absolute inset-0 w-full h-full object-cover" />
+            <img
+              src={cover}
+              alt={project.titel || "Project"}
+              loading="eager"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : project.driveFolderId ? (
+            <LazySheetImage kind="portfolio" item={project} alt={project.titel || "Project"} eager />
           ) : (
             <>
               <div className="grain absolute inset-0 opacity-40" />
@@ -102,7 +135,13 @@ function ProjectDetail() {
                   i === activeImg ? "border-foreground" : "border-border hover:border-foreground/30"
                 }`}
               >
-                <img src={imageSource(img)} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={imageSource(img)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
               </button>
             ))}
           </div>
@@ -177,4 +216,25 @@ function ProjectDetail() {
       )}
     </>
   );
+}
+
+function getCachedProjects(queryClient: ReturnType<typeof useQueryClient>): PortfolioItem[] {
+  const items: PortfolioItem[] = [];
+  const initial = queryClient.getQueryData<SiteData>(["site-initial"]);
+  items.push(...(initial?.portfolio || []));
+
+  const infinite = queryClient.getQueryData<InfiniteData<PageResult<PortfolioItem>>>(["portfolio"]);
+  infinite?.pages?.forEach((page) => items.push(...(page.items || [])));
+
+  queryClient.getQueriesData<PageResult<PortfolioItem>>({ queryKey: ["portfolio-page"] }).forEach(([, page]) => {
+    items.push(...(page?.items || []));
+  });
+
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const id = getPortfolioId(item);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 }

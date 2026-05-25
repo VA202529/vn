@@ -1,15 +1,36 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { type InfiniteData, useQueryClient } from "@tanstack/react-query";
+import { useMemo, useState } from "react";
 import { Section, Eyebrow } from "@/components/site/Section";
-import { useSiteData } from "@/hooks/use-site-data";
+import { LazySheetImage } from "@/components/site/LazySheetImage";
+import { useProductDetail } from "@/hooks/use-site-data";
 import { ProductRequestDialog } from "@/components/site/ProductRequestDialog";
-import { formatPriceFrom, getProductId, imageSource } from "@/lib/api";
+import {
+  formatPriceFrom,
+  getProductId,
+  imageSource,
+  matchesPublicId,
+  type PageResult,
+  type ProductItem,
+  type SiteData,
+} from "@/lib/api";
+import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/producten/$slug")({
-  head: () => ({
+  head: ({ params }) => ({
     meta: [
-      { title: "Product — Van Appiah" },
-      { name: "description", content: "Bekijk dit product van Van Appiah en vraag eenvoudig meer informatie aan." },
+      ...seo({
+        title: "Digitale oplossing bekijken | Van Appiah",
+        description:
+          "Bekijk deze website, webshop of digitale oplossing van Van Appiah en vraag direct meer informatie of een offerte aan.",
+        path: `/producten/${params.slug}`,
+        keywords: ["website laten maken Amsterdam", "professionele website laten maken", "Van Appiah producten"],
+        jsonLd: breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Producten", path: "/producten" },
+          { name: params.slug, path: `/producten/${params.slug}` },
+        ]),
+      }).meta,
     ],
   }),
   component: ProductDetail,
@@ -17,13 +38,17 @@ export const Route = createFileRoute("/producten/$slug")({
 
 function ProductDetail() {
   const { slug } = Route.useParams();
-  const { data, isLoading, isError } = useSiteData();
-  const items = data?.producten ?? [];
-  const product = items.find((p) => getProductId(p) === slug);
+  const queryClient = useQueryClient();
+  const cachedProducts = useMemo(() => getCachedProducts(queryClient), [queryClient]);
+  const cachedProduct = useMemo(
+    () => cachedProducts.find((product) => matchesPublicId(product, slug, getProductId)),
+    [cachedProducts, slug],
+  );
+  const { data: product, isLoading, isError } = useProductDetail(slug, cachedProduct);
   const [requestOpen, setRequestOpen] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
 
-  if (isLoading) {
+  if (!product && isLoading) {
     return (
       <Section className="py-24 text-center">
         <p className="text-muted-foreground">Product wordt geladen…</p>
@@ -47,7 +72,7 @@ function ProductDetail() {
     );
   }
 
-  const related = items.filter((p) => getProductId(p) !== slug).slice(0, 3);
+  const related = cachedProducts.filter((p) => !matchesPublicId(p, slug, getProductId)).slice(0, 3);
   const images = product.images || [];
   const cover = imageSource(images[activeImg]);
   const price = formatPriceFrom(product.prijs_vanaf);
@@ -73,7 +98,15 @@ function ProductDetail() {
       <Section className="pb-12">
         <div className="rounded-[1.75rem] sm:rounded-[2rem] border border-border bg-gradient-to-br from-white to-zinc-50 relative overflow-hidden aspect-[16/9] sm:aspect-[2/1]">
           {cover ? (
-            <img src={cover} alt={product.titel || "Product"} className="absolute inset-0 w-full h-full object-cover" />
+            <img
+              src={cover}
+              alt={product.titel || "Product"}
+              loading="eager"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover"
+            />
+          ) : product.driveFolderId ? (
+            <LazySheetImage kind="product" item={product} alt={product.titel || "Product"} eager />
           ) : (
             <div className="absolute inset-6 sm:inset-10 rounded-2xl border border-border bg-background/70 backdrop-blur-sm p-4 sm:p-6 flex flex-col gap-3">
               <div className="flex items-center gap-1.5">
@@ -103,7 +136,13 @@ function ProductDetail() {
                   i === activeImg ? "border-foreground" : "border-border hover:border-foreground/30"
                 }`}
               >
-                <img src={imageSource(img)} alt="" className="w-full h-full object-cover" />
+                <img
+                  src={imageSource(img)}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
               </button>
             ))}
           </div>
@@ -182,4 +221,25 @@ function ProductDetail() {
       <ProductRequestDialog product={product} open={requestOpen} onOpenChange={setRequestOpen} />
     </>
   );
+}
+
+function getCachedProducts(queryClient: ReturnType<typeof useQueryClient>): ProductItem[] {
+  const items: ProductItem[] = [];
+  const initial = queryClient.getQueryData<SiteData>(["site-initial"]);
+  items.push(...(initial?.producten || []));
+
+  const infinite = queryClient.getQueryData<InfiniteData<PageResult<ProductItem>>>(["products"]);
+  infinite?.pages?.forEach((page) => items.push(...(page.items || [])));
+
+  queryClient.getQueriesData<PageResult<ProductItem>>({ queryKey: ["products-page"] }).forEach(([, page]) => {
+    items.push(...(page?.items || []));
+  });
+
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const id = getProductId(item);
+    if (seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 }

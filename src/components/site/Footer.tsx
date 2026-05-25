@@ -14,9 +14,10 @@ export function Footer() {
 
   const emails = [bg?.email_1, bg?.email_2, bg?.email_3].filter(Boolean) as string[];
   const socials = [
-    bg?.instagram && { label: "Instagram", href: bg.instagram },
-    bg?.tiktok && { label: "TikTok", href: bg.tiktok },
+    { label: "Instagram", href: bg?.instagram || "https://www.instagram.com/van_appiah/" },
+    { label: "TikTok", href: bg?.tiktok || "https://www.tiktok.com/@vanappiah" },
     bg?.linkedin && { label: "LinkedIn", href: bg.linkedin },
+    { label: "Facebook", href: "https://www.facebook.com/share/1Bd1w6Crxu/?mibextid=wwXIfr" },
   ].filter(Boolean) as { label: string; href: string }[];
 
   const [naam, setNaam] = useState("");
@@ -94,6 +95,8 @@ export function Footer() {
             <p className="text-xs uppercase tracking-widest text-muted-foreground mb-4">Navigatie</p>
             <ul className="space-y-2 text-sm">
               <li><Link to="/diensten" className="hover:underline">Diensten</Link></li>
+              <li><Link to="/websites-laten-maken-amsterdam-noord" className="hover:underline">Website laten maken Amsterdam-Noord</Link></li>
+              <li><Link to="/marketing-amsterdam-noord" className="hover:underline">Marketing Amsterdam-Noord</Link></li>
               <li><Link to="/portfolio" className="hover:underline">Portfolio</Link></li>
               <li><Link to="/producten" className="hover:underline">Producten</Link></li>
               <li><Link to="/offerte" className="hover:underline">Offerte aanvragen</Link></li>
@@ -146,8 +149,8 @@ export function Footer() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} {bedrijfsnaam}. Innovatief. Creatief. Partnerschap.</p>
-          <p>Gemaakt met zorg in NL</p>
+          <p>© {new Date().getFullYear()} {bedrijfsnaam}. Websites, webshops en marketing voor Amsterdam-Noord.</p>
+          <p>Gemaakt met zorg in Amsterdam</p>
         </div>
       </div>
     </footer>

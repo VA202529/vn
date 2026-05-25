@@ -1,60 +1,88 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Section, Eyebrow } from "@/components/site/Section";
+import { Eyebrow, Section } from "@/components/site/Section";
+import { breadcrumbSchema, seo, serviceSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/diensten")({
-  head: () => ({
-    meta: [
-      { title: "Diensten — Van Appiah" },
-      { name: "description", content: "Onze diensten: dynamische websites, admin dashboards, automatisering, branding en meer." },
-    ],
-  }),
+  head: () =>
+    seo({
+      title: "Diensten voor websites, marketing en branding | Van Appiah",
+      description:
+        "Bekijk de diensten van Van Appiah: websites, webshops, branding, social media marketing en digitale systemen voor ondernemers in Amsterdam.",
+      path: "/diensten",
+      keywords: [
+        "website voor bedrijf laten maken",
+        "webshop laten maken Amsterdam",
+        "branding voor bedrijven Amsterdam",
+      ],
+      jsonLd: [
+        serviceSchema(
+          "Webdesign, marketing en digitale systemen",
+          "Websites, webshops, branding, social media marketing en automatisering voor bedrijven in Amsterdam.",
+          "/diensten",
+        ),
+        breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Diensten", path: "/diensten" },
+        ]),
+      ],
+    }),
   component: DienstenPage,
 });
 
 const services = [
-  { n: "01", t: "Statische websites", d: "Snelle, scherp ontworpen marketing-sites die direct vertrouwen wekken." },
-  { n: "02", t: "Dynamische websites", d: "Volledig beheerbare platformen met content management en data flows." },
-  { n: "03", t: "Admin dashboards", d: "Op maat ontworpen beheersystemen voor uw producten, klanten en orders." },
-  { n: "04", t: "Geautomatiseerde processen", d: "E-mailflows, herinneringen en API-koppelingen die werk uit handen nemen." },
-  { n: "05", t: "Maatwerk applicaties", d: "Kleine systemen en apps die specifieke bedrijfsprocessen oplossen." },
-  { n: "06", t: "Verkoopplatformen", d: "Van automotive voorraadbeheer tot retail e-commerce oplossingen." },
-  { n: "07", t: "Grafisch ontwerp & branding", d: "Logo's, huisstijl en visuele identiteit die u herkenbaar maken." },
-  { n: "08", t: "Private label support", d: "Productontwikkeling onder uw eigen merknaam." },
-  { n: "09", t: "Social media beheer", d: "Strategie, content en groeistrategie voor uw online aanwezigheid." },
+  { n: "01", t: "Website laten maken", d: "Snelle, professionele websites voor ondernemers die vertrouwen willen uitstralen en meer aanvragen willen ontvangen." },
+  { n: "02", t: "Webshop laten maken", d: "Overzichtelijke webshops voor merken, salons en lokale bedrijven die online willen verkopen." },
+  { n: "03", t: "Marketing", d: "Strategie, campagnes en content die uw bedrijf zichtbaar maken in Amsterdam en daarbuiten." },
+  { n: "04", t: "Social media marketing", d: "Contentlijnen, visuals en planning voor Instagram, TikTok en andere kanalen." },
+  { n: "05", t: "Branding", d: "Logo, huisstijl en merkgevoel voor bedrijven die professioneel en herkenbaar willen overkomen." },
+  { n: "06", t: "Digitale systemen", d: "Formulieren, dashboards, automatisering en API-koppelingen die werk uit handen nemen." },
+  { n: "07", t: "Maatwerk applicaties", d: "Kleine systemen en apps die specifieke bedrijfsprocessen oplossen." },
+  { n: "08", t: "Online zichtbaarheid", d: "SEO-basis, lokale vindbaarheid en contentstructuur voor ondernemers in Amsterdam-Noord." },
+  { n: "09", t: "Doorontwikkeling", d: "Onderhoud, optimalisatie en uitbreiding nadat uw website of systeem live staat." },
 ];
 
 function DienstenPage() {
   return (
     <>
-      <Section className="pt-16 md:pt-24 pb-16">
+      <Section className="pt-16 pb-16 md:pt-24">
         <Eyebrow>Diensten</Eyebrow>
-        <h1 className="mt-6 text-5xl md:text-7xl font-semibold tracking-tight leading-[0.95]">
-          Een complete digitale<br />infrastructuur.
+        <h1 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
+          Websites, marketing<br />en systemen voor groei.
         </h1>
-        <p className="mt-6 text-lg text-muted-foreground max-w-2xl">
-          Van een eerste landing page tot complexe geautomatiseerde systemen. Wij combineren ontwikkeling, ontwerp en strategie.
+        <p className="mt-6 max-w-2xl text-lg text-muted-foreground">
+          Van Appiah helpt bedrijven in Amsterdam-Noord met webdesign, webshops, branding, marketing en automatisering. Alles blijft helder, snel en gericht op aanvragen.
         </p>
       </Section>
 
       <Section className="pb-20">
-        <div className="rounded-[2rem] border border-border overflow-hidden">
-          <div className="grid md:grid-cols-3 gap-px bg-border">
+        <div className="overflow-hidden rounded-[2rem] border border-border">
+          <div className="grid gap-px bg-border md:grid-cols-3">
             {services.map((s) => (
-              <div key={s.n} className="bg-background p-8 hover:bg-surface transition-colors">
+              <article key={s.n} className="bg-background p-8 transition-colors hover:bg-surface">
                 <span className="font-mono text-xs text-muted-foreground">{s.n}</span>
-                <h3 className="mt-8 text-xl font-semibold tracking-tight">{s.t}</h3>
-                <p className="mt-3 text-sm text-muted-foreground leading-relaxed">{s.d}</p>
-              </div>
+                <h2 className="mt-8 text-xl font-semibold tracking-tight">{s.t}</h2>
+                <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
+              </article>
             ))}
           </div>
         </div>
       </Section>
 
       <Section className="py-20">
-        <div className="rounded-[2rem] border border-border p-10 md:p-16 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <h2 className="text-3xl md:text-4xl font-semibold tracking-tight max-w-xl">Niet zeker welke dienst u nodig heeft?</h2>
-          <Link to="/contact" className="inline-flex items-center gap-2 rounded-full bg-foreground text-background px-6 py-3 text-sm font-medium hover:opacity-90 whitespace-nowrap">
-            Vraag advies →
+        <div className="flex flex-col items-start justify-between gap-8 rounded-[2rem] border border-border p-10 md:flex-row md:items-center md:p-16">
+          <div>
+            <h2 className="max-w-xl text-3xl font-semibold tracking-tight md:text-4xl">
+              Niet zeker welke dienst past bij uw bedrijf?
+            </h2>
+            <p className="mt-3 max-w-xl text-muted-foreground">
+              Vertel kort wat u wilt bereiken. Dan adviseren we eerlijk of u beter start met een website, marketing, branding of een systeem op maat.
+            </p>
+          </div>
+          <Link
+            to="/offerte"
+            className="inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background hover:opacity-90"
+          >
+            Vraag een offerte aan →
           </Link>
         </div>
       </Section>

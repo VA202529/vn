@@ -9,8 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WebsitesLatenMakenAmsterdamNoordRouteImport } from './routes/websites-laten-maken-amsterdam-noord'
 import { Route as OverRouteImport } from './routes/over'
 import { Route as OfferteRouteImport } from './routes/offerte'
+import { Route as MarketingAmsterdamNoordRouteImport } from './routes/marketing-amsterdam-noord'
 import { Route as DienstenRouteImport } from './routes/diensten'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as IndexRouteImport } from './routes/index'
@@ -19,6 +21,12 @@ import { Route as PortfolioIndexRouteImport } from './routes/portfolio.index'
 import { Route as ProductenSlugRouteImport } from './routes/producten.$slug'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 
+const WebsitesLatenMakenAmsterdamNoordRoute =
+  WebsitesLatenMakenAmsterdamNoordRouteImport.update({
+    id: '/websites-laten-maken-amsterdam-noord',
+    path: '/websites-laten-maken-amsterdam-noord',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const OverRoute = OverRouteImport.update({
   id: '/over',
   path: '/over',
@@ -27,6 +35,11 @@ const OverRoute = OverRouteImport.update({
 const OfferteRoute = OfferteRouteImport.update({
   id: '/offerte',
   path: '/offerte',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MarketingAmsterdamNoordRoute = MarketingAmsterdamNoordRouteImport.update({
+  id: '/marketing-amsterdam-noord',
+  path: '/marketing-amsterdam-noord',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DienstenRoute = DienstenRouteImport.update({
@@ -69,8 +82,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
   '/diensten': typeof DienstenRoute
+  '/marketing-amsterdam-noord': typeof MarketingAmsterdamNoordRoute
   '/offerte': typeof OfferteRoute
   '/over': typeof OverRoute
+  '/websites-laten-maken-amsterdam-noord': typeof WebsitesLatenMakenAmsterdamNoordRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/producten/$slug': typeof ProductenSlugRoute
   '/portfolio/': typeof PortfolioIndexRoute
@@ -80,8 +95,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
   '/diensten': typeof DienstenRoute
+  '/marketing-amsterdam-noord': typeof MarketingAmsterdamNoordRoute
   '/offerte': typeof OfferteRoute
   '/over': typeof OverRoute
+  '/websites-laten-maken-amsterdam-noord': typeof WebsitesLatenMakenAmsterdamNoordRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/producten/$slug': typeof ProductenSlugRoute
   '/portfolio': typeof PortfolioIndexRoute
@@ -92,8 +109,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/contact': typeof ContactRoute
   '/diensten': typeof DienstenRoute
+  '/marketing-amsterdam-noord': typeof MarketingAmsterdamNoordRoute
   '/offerte': typeof OfferteRoute
   '/over': typeof OverRoute
+  '/websites-laten-maken-amsterdam-noord': typeof WebsitesLatenMakenAmsterdamNoordRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/producten/$slug': typeof ProductenSlugRoute
   '/portfolio/': typeof PortfolioIndexRoute
@@ -105,8 +124,10 @@ export interface FileRouteTypes {
     | '/'
     | '/contact'
     | '/diensten'
+    | '/marketing-amsterdam-noord'
     | '/offerte'
     | '/over'
+    | '/websites-laten-maken-amsterdam-noord'
     | '/portfolio/$slug'
     | '/producten/$slug'
     | '/portfolio/'
@@ -116,8 +137,10 @@ export interface FileRouteTypes {
     | '/'
     | '/contact'
     | '/diensten'
+    | '/marketing-amsterdam-noord'
     | '/offerte'
     | '/over'
+    | '/websites-laten-maken-amsterdam-noord'
     | '/portfolio/$slug'
     | '/producten/$slug'
     | '/portfolio'
@@ -127,8 +150,10 @@ export interface FileRouteTypes {
     | '/'
     | '/contact'
     | '/diensten'
+    | '/marketing-amsterdam-noord'
     | '/offerte'
     | '/over'
+    | '/websites-laten-maken-amsterdam-noord'
     | '/portfolio/$slug'
     | '/producten/$slug'
     | '/portfolio/'
@@ -139,8 +164,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ContactRoute: typeof ContactRoute
   DienstenRoute: typeof DienstenRoute
+  MarketingAmsterdamNoordRoute: typeof MarketingAmsterdamNoordRoute
   OfferteRoute: typeof OfferteRoute
   OverRoute: typeof OverRoute
+  WebsitesLatenMakenAmsterdamNoordRoute: typeof WebsitesLatenMakenAmsterdamNoordRoute
   PortfolioSlugRoute: typeof PortfolioSlugRoute
   ProductenSlugRoute: typeof ProductenSlugRoute
   PortfolioIndexRoute: typeof PortfolioIndexRoute
@@ -149,6 +176,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/websites-laten-maken-amsterdam-noord': {
+      id: '/websites-laten-maken-amsterdam-noord'
+      path: '/websites-laten-maken-amsterdam-noord'
+      fullPath: '/websites-laten-maken-amsterdam-noord'
+      preLoaderRoute: typeof WebsitesLatenMakenAmsterdamNoordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/over': {
       id: '/over'
       path: '/over'
@@ -161,6 +195,13 @@ declare module '@tanstack/react-router' {
       path: '/offerte'
       fullPath: '/offerte'
       preLoaderRoute: typeof OfferteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/marketing-amsterdam-noord': {
+      id: '/marketing-amsterdam-noord'
+      path: '/marketing-amsterdam-noord'
+      fullPath: '/marketing-amsterdam-noord'
+      preLoaderRoute: typeof MarketingAmsterdamNoordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/diensten': {
@@ -219,8 +260,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ContactRoute: ContactRoute,
   DienstenRoute: DienstenRoute,
+  MarketingAmsterdamNoordRoute: MarketingAmsterdamNoordRoute,
   OfferteRoute: OfferteRoute,
   OverRoute: OverRoute,
+  WebsitesLatenMakenAmsterdamNoordRoute: WebsitesLatenMakenAmsterdamNoordRoute,
   PortfolioSlugRoute: PortfolioSlugRoute,
   ProductenSlugRoute: ProductenSlugRoute,
   PortfolioIndexRoute: PortfolioIndexRoute,

@@ -12,6 +12,7 @@ import appCss from "../styles.css?url";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { Toaster } from "@/components/ui/sonner";
+import { localBusinessSchema, organizationSchema, seo, websiteSchema } from "@/lib/seo";
 
 function NotFoundComponent() {
   return (
@@ -75,13 +76,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Van Appiah — Digital Infrastructure & Automation" },
-      { name: "description", content: "Van Appiah bouwt dynamische websites, maatwerk systemen en automatisering voor groeiende bedrijven. Innovatief. Creatief. Partnerschap." },
-      { name: "author", content: "Van Appiah" },
-      { property: "og:title", content: "Van Appiah — Digital Infrastructure & Automation" },
-      { property: "og:description", content: "Wij bouwen systemen die werken — van idee tot groei." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "robots", content: "index, follow, max-image-preview:large" },
+      ...seo({
+        title: "Website laten maken Amsterdam-Noord | Van Appiah",
+        description:
+          "Van Appiah helpt ondernemers in Amsterdam-Noord met professionele websites, webshops, branding, marketing en online groei.",
+        keywords: [
+          "website laten maken Amsterdam Noord",
+          "webdesigner Amsterdam",
+          "marketing bureau Amsterdam Noord",
+          "Van Appiah",
+        ],
+        jsonLd: [organizationSchema(), websiteSchema(), localBusinessSchema()],
+      }).meta,
     ],
     links: [
       { rel: "stylesheet", href: appCss },

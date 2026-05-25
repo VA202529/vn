@@ -1,11 +1,21 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Section, Eyebrow } from "@/components/site/Section";
+import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/over")({
   head: () => ({
     meta: [
-      { title: "Over — Van Appiah" },
-      { name: "description", content: "Wie wij zijn: innovatief, creatief, partnerschap. Meer dan een webbureau." },
+      ...seo({
+        title: "Over Van Appiah | Webdesign en marketing Amsterdam-Noord",
+        description:
+          "Leer Van Appiah kennen: VA helpt ondernemers met websites, webshops, branding, marketing en digitale systemen in Amsterdam-Noord.",
+        path: "/over",
+        keywords: ["Van Appiah", "VA websites", "webdesigner Amsterdam Noord"],
+        jsonLd: breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Over Van Appiah", path: "/over" },
+        ]),
+      }).meta,
     ],
   }),
   component: OverPage,
@@ -17,7 +27,7 @@ function OverPage() {
       <Section className="pt-16 md:pt-24 pb-12">
         <Eyebrow>Over Van Appiah</Eyebrow>
         <h1 className="mt-6 text-5xl md:text-7xl font-semibold tracking-tight leading-[0.95] max-w-4xl">
-          Meer dan een<br />webbureau.
+          Webdesign, marketing<br />en digitale groei.
         </h1>
       </Section>
 
@@ -43,7 +53,7 @@ function OverPage() {
             Van statische websites naar complete digitale ecosystemen.
           </h2>
           <p className="mt-6 text-lg text-muted-foreground">
-            Wat begon met het bouwen van eenvoudige websites is uitgegroeid tot het ontwikkelen van volledig dynamische platformen en geautomatiseerde systemen. Tegenwoordig realiseren wij complete online oplossingen.
+          Wat begon met het bouwen van websites is uitgegroeid tot een bredere aanpak voor online groei. Van Appiah helpt ondernemers met websites, webshops, branding, marketing en systemen die dagelijks werk makkelijker maken.
           </p>
         </div>
       </Section>

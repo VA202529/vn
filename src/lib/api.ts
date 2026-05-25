@@ -31,6 +31,8 @@ export type PortfolioItem = {
   beschrijving?: string;
   klantnaam?: string;
   categorie?: string;
+  driveFolderId?: string;
+  imageCountReady?: boolean;
   images?: SiteImage[];
 };
 
@@ -44,6 +46,8 @@ export type ProductItem = {
   onderhoud_eenmalig?: number;
   onderhoud_per_maand?: number;
   onderhoud_uitleg?: string;
+  driveFolderId?: string;
+  imageCountReady?: boolean;
   images?: SiteImage[];
 };
 
@@ -60,11 +64,26 @@ export type SiteData = {
   producten?: ProductItem[];
 };
 
+export type PageResult<T> = {
+  ok: boolean;
+  items: T[];
+  total?: number;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+  nextOffset?: number;
+};
+
+export type QuoteOption = {
+  id?: string;
+  titel: string;
+};
+
 // ---------- Data ophalen ----------
 
 let jsonpCounter = 0;
 
-function fetchJsonp(url: string, timeoutMs = 26000): Promise<SiteData> {
+function fetchJsonpRaw(url: string, timeoutMs = 12000): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (typeof window === "undefined") {
       reject(new Error("JSONP alleen beschikbaar in de browser"));
@@ -86,7 +105,7 @@ function fetchJsonp(url: string, timeoutMs = 26000): Promise<SiteData> {
 
     (window as unknown as Record<string, unknown>)[cbName] = (data: unknown) => {
       cleanup();
-      resolve(normalizeSiteData(data));
+      resolve(data);
     };
 
     const sep = url.includes("?") ? "&" : "?";
@@ -100,44 +119,97 @@ function fetchJsonp(url: string, timeoutMs = 26000): Promise<SiteData> {
 }
 
 export async function loadSiteData(): Promise<SiteData> {
-  const url = `${WEB_APP_URL}?action=getSiteData&_=${Date.now()}`;
-  const jsonpPromise =
-    typeof window === "undefined"
-      ? undefined
-      : fetchJsonp(`${WEB_APP_URL}?action=getSiteData`);
-  jsonpPromise?.catch(() => undefined);
+  return normalizeSiteData(await requestWebApp("getSiteData", {}, { jsonpTimeoutMs: 26000 }));
+}
 
-  // 1) Probeer een directe fetch
+export async function getInitialSiteData(): Promise<SiteData> {
   try {
-    const controller = typeof AbortController === "undefined" ? undefined : new AbortController();
-    const timer = controller ? setTimeout(() => controller.abort(), 6500) : undefined;
-    const res = await withTimeout(
-      fetch(url, {
-        method: "GET",
-        mode: "cors",
-        cache: "no-store",
-        credentials: "omit",
-        signal: controller?.signal,
-      }),
-      6500,
-    );
-    if (timer) clearTimeout(timer);
-    if (res.ok) {
-      const data = parseJsonResponse(await res.text());
-      if (data && data.ok) return data;
-    }
-    throw new Error("fetch faalde");
+    const fast = normalizeSiteData(await requestWebApp("getFastSiteData"));
+    return limitInitialData(fast);
   } catch {
-    // 2) Fallback: JSONP via <script> tag
-    if (jsonpPromise) {
-      try {
-        const data = await jsonpPromise;
-        if (data && data.ok) return data;
-      } catch {
-        // doorvallen
-      }
+    // Fallback voor deployments waar getFastSiteData nog niet beschikbaar is.
+  }
+
+  try {
+    const data = normalizeSiteData(
+      await requestWebApp("getInitialSiteData", { productsLimit: 4, portfolioLimit: 4 }),
+    );
+    return limitInitialData(data);
+  } catch {
+    return limitInitialData(await loadSiteData());
+  }
+}
+
+export async function getProductsPage(offset = 0, limit = 6): Promise<PageResult<ProductItem>> {
+  try {
+    const page = normalizeProductPage(
+      await requestWebApp("getProductsPage", { offset, limit }, { fetchTimeoutMs: 1800, jsonpTimeoutMs: 5200 }),
+      offset,
+      limit,
+    );
+    if (offset === 0 && page.items.length === 0) {
+      const data = await getInitialSiteData();
+      if (data.producten?.length) return slicePage(data.producten, offset, limit);
     }
-    throw new Error("De websitegegevens konden tijdelijk niet worden geladen.");
+    return page;
+  } catch {
+    if (offset > 0) return emptyPage(offset, limit);
+    const data = await getInitialSiteData();
+    return slicePage(data.producten || [], offset, limit);
+  }
+}
+
+export async function getPortfolioPage(offset = 0, limit = 6): Promise<PageResult<PortfolioItem>> {
+  try {
+    const page = normalizePortfolioPage(
+      await requestWebApp("getPortfolioPage", { offset, limit }, { fetchTimeoutMs: 1800, jsonpTimeoutMs: 5200 }),
+      offset,
+      limit,
+    );
+    if (offset === 0 && page.items.length === 0) {
+      const data = await getInitialSiteData();
+      if (data.portfolio?.length) return slicePage(data.portfolio, offset, limit);
+    }
+    return page;
+  } catch {
+    if (offset > 0) return emptyPage(offset, limit);
+    const data = await getInitialSiteData();
+    return slicePage(data.portfolio || [], offset, limit);
+  }
+}
+
+export async function getQuoteOptions(): Promise<QuoteOption[]> {
+  try {
+    return normalizeQuoteOptions(await requestWebApp("getQuoteOptions"));
+  } catch {
+    const data = await loadSiteData();
+    return normalizeQuoteOptions(data.producten || []);
+  }
+}
+
+export async function getPortfolioImagesForItem(id?: string, folderId?: string): Promise<SiteImage[]> {
+  return normalizeImageResponse(await requestWebApp("getPortfolioImages", { id, folderId }));
+}
+
+export async function getProductImagesForItem(id?: string, folderId?: string): Promise<SiteImage[]> {
+  return normalizeImageResponse(await requestWebApp("getProductImages", { id, folderId }));
+}
+
+export async function getProductDetail(slug: string): Promise<ProductItem | undefined> {
+  try {
+    return normalizeProductDetail(await requestWebApp("getProductDetail", { id: slug, slug }));
+  } catch {
+    const page = await getProductsPage(0, 120);
+    return page.items.find((item) => matchesPublicId(item, slug, getProductId));
+  }
+}
+
+export async function getPortfolioDetail(slug: string): Promise<PortfolioItem | undefined> {
+  try {
+    return normalizePortfolioDetail(await requestWebApp("getPortfolioDetail", { id: slug, slug }));
+  } catch {
+    const page = await getPortfolioPage(0, 120);
+    return page.items.find((item) => matchesPublicId(item, slug, getPortfolioId));
   }
 }
 
@@ -176,6 +248,52 @@ export function imageSource(image?: SiteImage): string {
   return image?.thumbnail || image?.url || "";
 }
 
+async function requestWebApp(
+  action: string,
+  params: Record<string, string | number | boolean | undefined> = {},
+  options: { fetchTimeoutMs?: number; jsonpTimeoutMs?: number } = {},
+): Promise<unknown> {
+  const fetchTimeoutMs = options.fetchTimeoutMs ?? 2200;
+  const jsonpTimeoutMs = options.jsonpTimeoutMs ?? 12000;
+  const query = new URLSearchParams({ action, _: String(Date.now()) });
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined) query.set(key, String(value));
+  });
+  const url = `${WEB_APP_URL}?${query.toString()}`;
+  const jsonpUrl = `${WEB_APP_URL}?${new URLSearchParams({ ...Object.fromEntries(query), _: String(Date.now()) }).toString()}`;
+  const jsonpPromise =
+    typeof window === "undefined" ? undefined : fetchJsonpRaw(jsonpUrl, jsonpTimeoutMs);
+  jsonpPromise?.catch(() => undefined);
+
+  const controller = typeof AbortController === "undefined" ? undefined : new AbortController();
+  const timer = controller ? setTimeout(() => controller.abort(), fetchTimeoutMs) : undefined;
+  const fetchPromise = withTimeout(
+    fetch(url, {
+      method: "GET",
+      mode: "cors",
+      cache: "no-store",
+      credentials: "omit",
+      signal: controller?.signal,
+    }).then(async (res) => {
+      if (!res.ok) throw new Error(`status_${res.status}`);
+      return parseJsonResponse(await res.text());
+    }),
+    fetchTimeoutMs,
+  ).finally(() => {
+    if (timer) clearTimeout(timer);
+  });
+
+  if (jsonpPromise) {
+    try {
+      return await firstSuccessful([jsonpPromise, fetchPromise]);
+    } catch {
+      throw new Error("De websitegegevens konden tijdelijk niet worden geladen.");
+    }
+  }
+
+  return await fetchPromise;
+}
+
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error("Time-out bij directe webapp-fetch")), timeoutMs);
@@ -192,12 +310,25 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   });
 }
 
-function parseJsonResponse(text: string): SiteData {
+function firstSuccessful<T>(promises: Promise<T>[]): Promise<T> {
+  if (typeof Promise.any === "function") return Promise.any(promises);
+  return new Promise((resolve, reject) => {
+    let rejected = 0;
+    promises.forEach((promise) => {
+      promise.then(resolve).catch((error) => {
+        rejected += 1;
+        if (rejected === promises.length) reject(error);
+      });
+    });
+  });
+}
+
+function parseJsonResponse(text: string): unknown {
   const trimmed = String(text || "").trim();
   if (!trimmed || (trimmed[0] !== "{" && trimmed[0] !== "[")) {
     throw new Error("De webapp gaf geen JSON terug.");
   }
-  return normalizeSiteData(JSON.parse(trimmed));
+  return JSON.parse(trimmed);
 }
 
 function normalizeSiteData(value: unknown): SiteData {
@@ -210,6 +341,105 @@ function normalizeSiteData(value: unknown): SiteData {
     bedrijfsgegevens,
     producten: normalizeRows(input.producten, normalizeProduct),
     portfolio: normalizeRows(input.portfolio, normalizePortfolio),
+  };
+}
+
+function limitInitialData(data: SiteData): SiteData {
+  return {
+    ...data,
+    producten: (data.producten || []).slice(0, 4),
+    portfolio: (data.portfolio || []).slice(0, 4),
+  };
+}
+
+function normalizeProductPage(value: unknown, offset: number, limit: number): PageResult<ProductItem> {
+  const input = asRecord(value);
+  if (!input || input.ok === false) throw new Error("Geen producten ontvangen");
+  const rows = input.items || input.producten || [];
+  const items = normalizeRows(rows, normalizeProduct);
+  if (!input.items && input.producten) return slicePage(items, offset, limit);
+  return pageResult(items, input, offset, limit);
+}
+
+function normalizePortfolioPage(value: unknown, offset: number, limit: number): PageResult<PortfolioItem> {
+  const input = asRecord(value);
+  if (!input || input.ok === false) throw new Error("Geen portfolio ontvangen");
+  const rows = input.items || input.portfolio || [];
+  const items = normalizeRows(rows, normalizePortfolio);
+  if (!input.items && input.portfolio) return slicePage(items, offset, limit);
+  return pageResult(items, input, offset, limit);
+}
+
+function normalizeQuoteOptions(value: unknown): QuoteOption[] {
+  const input = asRecord(value);
+  const rows = Array.isArray(value)
+    ? value
+    : Array.isArray(input?.items)
+      ? input.items
+      : Array.isArray(input?.options)
+        ? input.options
+        : Array.isArray(input?.producten)
+          ? input.producten
+          : [];
+
+  return rows.flatMap((row) => {
+    const item = asRecord(row);
+    if (!item && typeof row === "string" && row.trim()) return [{ titel: row.trim() }];
+    const titel = item && toText(item.titel || item.name || item.label);
+    if (!item || !titel) return [];
+    return [{ id: toText(item.id || item.slug), titel }];
+  });
+}
+
+function pageResult<T>(
+  items: T[],
+  input: Record<string, unknown>,
+  offset: number,
+  limit: number,
+): PageResult<T> {
+  const total = toNumber(input.total);
+  const nextOffset = toNumber(input.nextOffset);
+  const hasMore =
+    typeof input.hasMore === "boolean"
+      ? input.hasMore
+      : nextOffset !== undefined
+        ? nextOffset > offset
+        : total !== undefined
+          ? offset + items.length < total
+          : items.length >= limit;
+
+  return {
+    ok: true,
+    items,
+    total,
+    offset,
+    limit,
+    hasMore,
+    nextOffset: hasMore ? nextOffset ?? offset + items.length : undefined,
+  };
+}
+
+function slicePage<T>(items: T[], offset: number, limit: number): PageResult<T> {
+  const pageItems = items.slice(offset, offset + limit);
+  return {
+    ok: true,
+    items: pageItems,
+    total: items.length,
+    offset,
+    limit,
+    hasMore: offset + pageItems.length < items.length,
+    nextOffset: offset + pageItems.length < items.length ? offset + pageItems.length : undefined,
+  };
+}
+
+function emptyPage<T>(offset: number, limit: number): PageResult<T> {
+  return {
+    ok: true,
+    items: [],
+    total: offset,
+    offset,
+    limit,
+    hasMore: false,
   };
 }
 
@@ -250,6 +480,8 @@ function normalizePortfolio(value: unknown): PortfolioItem | null {
     beschrijving: toText(row.beschrijving),
     klantnaam: toText(row.klantnaam),
     categorie: toText(row.categorie),
+    driveFolderId: toText(row.driveFolderId),
+    imageCountReady: typeof row.imageCountReady === "boolean" ? row.imageCountReady : undefined,
     images: normalizeImages(row.images),
   };
 }
@@ -269,8 +501,28 @@ function normalizeProduct(value: unknown): ProductItem | null {
     onderhoud_eenmalig: toNumber(row.onderhoud_eenmalig),
     onderhoud_per_maand: toNumber(row.onderhoud_per_maand),
     onderhoud_uitleg: toText(row.onderhoud_uitleg),
+    driveFolderId: toText(row.driveFolderId),
+    imageCountReady: typeof row.imageCountReady === "boolean" ? row.imageCountReady : undefined,
     images: normalizeImages(row.images),
   };
+}
+
+function normalizeImageResponse(value: unknown): SiteImage[] {
+  const input = asRecord(value);
+  if (input && input.ok === false) throw new Error("Afbeeldingen konden niet worden geladen");
+  return normalizeImages(input?.images || input?.items || value);
+}
+
+function normalizeProductDetail(value: unknown): ProductItem | undefined {
+  const input = asRecord(value);
+  if (!input || input.ok === false) throw new Error("Product kon niet worden geladen");
+  return normalizeProduct(input.item || input.product || input);
+}
+
+function normalizePortfolioDetail(value: unknown): PortfolioItem | undefined {
+  const input = asRecord(value);
+  if (!input || input.ok === false) throw new Error("Project kon niet worden geladen");
+  return normalizePortfolio(input.item || input.project || input);
 }
 
 function normalizeImages(value: unknown): SiteImage[] {
@@ -333,6 +585,24 @@ export function getProductId(p: ProductItem): string {
 
 export function getPortfolioId(p: PortfolioItem): string {
   return String(p.slug || p.id || p.titel || "");
+}
+
+export function slugifyPublic(value?: string | number): string {
+  return String(value || "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+export function matchesPublicId<T extends { id?: string | number; slug?: string; titel?: string }>(
+  item: T,
+  slug: string,
+  getId: (item: T) => string,
+): boolean {
+  const target = slugifyPublic(slug);
+  return [item.slug, item.id, item.titel, getId(item)].some((value) => slugifyPublic(value) === target);
 }
 
 const TONES = [

@@ -5,6 +5,8 @@ import { useSiteData } from "@/hooks/use-site-data";
 const nav = [
   { to: "/", label: "Home" },
   { to: "/diensten", label: "Diensten" },
+  { to: "/websites-laten-maken-amsterdam-noord", label: "Websites" },
+  { to: "/marketing-amsterdam-noord", label: "Marketing" },
   { to: "/portfolio", label: "Portfolio" },
   { to: "/producten", label: "Producten" },
   { to: "/offerte", label: "Offerte" },

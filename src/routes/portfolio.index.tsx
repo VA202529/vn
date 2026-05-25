@@ -1,22 +1,44 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Section, Eyebrow } from "@/components/site/Section";
-import { useSiteData } from "@/hooks/use-site-data";
-import { getPortfolioId, imageSource, toneFor, type PortfolioItem } from "@/lib/api";
+import { LazySheetImage } from "@/components/site/LazySheetImage";
+import { usePortfolioInfinite } from "@/hooks/use-site-data";
+import { getPortfolioDetail, getPortfolioId, toneFor } from "@/lib/api";
+import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/portfolio/")({
   head: () => ({
     meta: [
-      { title: "Portfolio — Van Appiah" },
-      { name: "description", content: "Een selectie van projecten die wij hebben opgeleverd voor uiteenlopende sectoren." },
+      ...seo({
+        title: "Portfolio webdesign en digitale projecten | Van Appiah",
+        description:
+          "Bekijk projecten van Van Appiah: websites, webshops, branding en digitale oplossingen voor ondernemers en lokale bedrijven.",
+        path: "/portfolio",
+        keywords: ["webdesign project Van Appiah", "portfolio websites Amsterdam", "website ontwerp Amsterdam"],
+        jsonLd: breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Portfolio", path: "/portfolio" },
+        ]),
+      }).meta,
     ],
   }),
   component: PortfolioPage,
 });
 
+const PAGE_SIZE = 6;
+
 function PortfolioPage() {
-  const { data, isLoading, isError } = useSiteData();
-  const items: PortfolioItem[] = data?.portfolio ?? [];
+  const queryClient = useQueryClient();
+  const {
+    data,
+    isLoading,
+    isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = usePortfolioInfinite(PAGE_SIZE);
+  const items = useMemo(() => data?.pages.flatMap((page) => page.items) ?? [], [data]);
   const [filter, setFilter] = useState<string>("Alle");
 
   const categories = useMemo(() => {
@@ -38,7 +60,7 @@ function PortfolioPage() {
           Een selectie van<br />wat wij hebben gebouwd.
         </h1>
         <p className="mt-5 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl">
-          Elk project is anders. De rode draad: oplossingen die werken — voor de mensen die ermee werken.
+          Bekijk hoe Van Appiah websites, webshops, branding en digitale systemen inzet voor ondernemers, lokale bedrijven en groeiende merken.
         </p>
       </Section>
 
@@ -66,7 +88,7 @@ function PortfolioPage() {
       )}
 
       <Section className="pb-16 md:pb-20">
-        {isLoading && <LoadingGrid />}
+        {isLoading && items.length === 0 && <LoadingGrid />}
         {isError && (
           <p className="text-center text-muted-foreground py-16">
             De projectenoverzicht kan tijdelijk niet worden geladen.
@@ -83,12 +105,22 @@ function PortfolioPage() {
             {filtered.map((c, i) => {
               const id = getPortfolioId(c);
               const tone = toneFor(id);
-              const cover = imageSource(c.images?.[0]);
+              const warmDetail = () => {
+                queryClient.setQueryData(["portfolio-detail", id], c);
+                queryClient.prefetchQuery({
+                  queryKey: ["portfolio-detail", id],
+                  queryFn: () => getPortfolioDetail(id),
+                  staleTime: 5 * 60 * 1000,
+                });
+              };
               return (
                 <Link
                   key={id}
                   to="/portfolio/$slug"
                   params={{ slug: id }}
+                  onMouseEnter={warmDetail}
+                  onFocus={warmDetail}
+                  onClick={warmDetail}
                   className={`group rounded-[1.75rem] sm:rounded-[2rem] border border-border p-6 sm:p-8 md:p-10 relative overflow-hidden bg-gradient-to-br ${tone} hover:shadow-lg transition-shadow`}
                 >
                   <div className="grain absolute inset-0 opacity-30 pointer-events-none" />
@@ -101,21 +133,7 @@ function PortfolioPage() {
                     </div>
 
                     <div className="mt-8 sm:mt-10 aspect-[5/3] rounded-2xl border border-border bg-background/60 backdrop-blur-sm relative overflow-hidden">
-                      {cover ? (
-                        <img
-                          src={cover}
-                          alt={c.titel || "Project"}
-                          loading="lazy"
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 grid place-items-center">
-                          <div className="text-center px-6">
-                            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">Geen afbeelding</p>
-                            <p className="mt-2 text-xl sm:text-2xl font-semibold tracking-tight">{c.titel}</p>
-                          </div>
-                        </div>
-                      )}
+                      <LazySheetImage kind="portfolio" item={c} alt={c.titel || "Project"} eager={i < 2} />
                     </div>
 
                     <h3 className="mt-6 sm:mt-8 text-xl sm:text-2xl font-semibold tracking-tight">{c.titel}</h3>
@@ -139,6 +157,25 @@ function PortfolioPage() {
             })}
           </div>
         )}
+
+        {!isLoading && !isError && hasNextPage && filter === "Alle" && (
+          <div className="mt-8 flex justify-center">
+            <button
+              type="button"
+              disabled={isFetchingNextPage}
+              onClick={() => fetchNextPage()}
+              className="rounded-full border border-border bg-surface px-5 py-2.5 text-sm font-medium hover:bg-surface-muted disabled:opacity-60"
+            >
+              {isFetchingNextPage ? "Laden..." : "Meer laden"}
+            </button>
+          </div>
+        )}
+
+        {isFetchingNextPage && (
+          <div className="mt-5">
+            <LoadingGrid count={2} />
+          </div>
+        )}
       </Section>
 
       <Section className="py-16 md:py-20">
@@ -158,10 +195,10 @@ function PortfolioPage() {
   );
 }
 
-function LoadingGrid() {
+function LoadingGrid({ count = 4 }: { count?: number }) {
   return (
     <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-      {Array.from({ length: 4 }).map((_, i) => (
+      {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
           className="rounded-[1.75rem] sm:rounded-[2rem] border border-border p-6 sm:p-8 md:p-10 animate-pulse"

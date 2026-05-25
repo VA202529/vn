@@ -3,13 +3,23 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Section, Eyebrow } from "@/components/site/Section";
 import { postAction } from "@/lib/api";
-import { useSiteData } from "@/hooks/use-site-data";
+import { useQuoteOptions } from "@/hooks/use-site-data";
+import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/offerte")({
   head: () => ({
     meta: [
-      { title: "Offerte aanvragen — Van Appiah" },
-      { name: "description", content: "Vraag eenvoudig een vrijblijvende offerte aan voor uw project." },
+      ...seo({
+        title: "Offerte aanvragen voor website of marketing | Van Appiah",
+        description:
+          "Vraag een vrijblijvende offerte aan voor een website, webshop, branding, marketing of digitaal systeem van Van Appiah.",
+        path: "/offerte",
+        keywords: ["offerte website laten maken", "website laten maken Amsterdam", "marketing offerte Amsterdam"],
+        jsonLd: breadcrumbSchema([
+          { name: "Home", path: "/" },
+          { name: "Offerte", path: "/offerte" },
+        ]),
+      }).meta,
     ],
   }),
   component: OffertePage,
@@ -26,8 +36,8 @@ const diensten = [
 ];
 
 function OffertePage() {
-  const { data } = useSiteData();
-  const productenOpts = (data?.producten ?? []).map((p) => p.titel).filter(Boolean) as string[];
+  const { data: quoteOptions = [], isLoading: optionsLoading } = useQuoteOptions();
+  const productenOpts = quoteOptions.map((p) => p.titel).filter(Boolean);
   const allOpts = Array.from(new Set([...diensten, ...productenOpts]));
 
   const [sent, setSent] = useState(false);
@@ -79,7 +89,7 @@ function OffertePage() {
           Vraag een<br />vrijblijvende offerte aan.
         </h1>
         <p className="mt-5 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl">
-          Vul het formulier in en we sturen je binnen één werkdag een gerichte offerte op maat.
+          Vul het formulier in en we sturen binnen een werkdag een gerichte offerte voor uw website, webshop, branding of marketing.
         </p>
       </Section>
 
@@ -113,6 +123,11 @@ function OffertePage() {
                   <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
                     Gewenste dienst
                   </label>
+                  {optionsLoading && (
+                    <p className="-mt-1 mb-2 h-4 text-xs text-muted-foreground">
+                      Productopties laden...
+                    </p>
+                  )}
                   <select
                     required
                     value={form.gewenste_dienst}
