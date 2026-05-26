@@ -83,6 +83,16 @@ export type QuoteOption = {
 
 let jsonpCounter = 0;
 
+function debugSiteData(label: string, value: unknown) {
+  if (
+    import.meta.env.DEV ||
+    import.meta.env.MODE === "staging" ||
+    import.meta.env.VITE_DEBUG_SITE_DATA === "true"
+  ) {
+    console.log(label, value);
+  }
+}
+
 function fetchJsonpRaw(url: string, timeoutMs = 12000): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (typeof window === "undefined") {
@@ -123,17 +133,49 @@ export async function loadSiteData(): Promise<SiteData> {
 }
 
 export async function getInitialSiteData(): Promise<SiteData> {
-  const attempts = [
-    requestWebApp("getFastSiteData", {}, { fetchTimeoutMs: 1800, jsonpTimeoutMs: 4500 }),
-    requestWebApp(
-      "getInitialSiteData",
-      { productsLimit: 4, portfolioLimit: 4 },
-      { fetchTimeoutMs: 1800, jsonpTimeoutMs: 4500 },
-    ),
-    requestWebApp("getSiteData", {}, { fetchTimeoutMs: 2600, jsonpTimeoutMs: 9000 }),
-  ].map((promise) => promise.then((value) => requireVisibleSiteData(normalizeSiteData(value))));
+  const sources = [
+    {
+      action: "getFastSiteData",
+      params: {},
+      options: { fetchTimeoutMs: 1800, jsonpTimeoutMs: 4500 },
+    },
+    {
+      action: "getInitialSiteData",
+      params: { productsLimit: 4, portfolioLimit: 4 },
+      options: { fetchTimeoutMs: 1800, jsonpTimeoutMs: 4500 },
+    },
+    {
+      action: "getSiteData",
+      params: {},
+      options: { fetchTimeoutMs: 2600, jsonpTimeoutMs: 9000 },
+    },
+  ];
 
-  return limitInitialData(await firstSuccessful(attempts));
+  let lastError: unknown;
+  for (const source of sources) {
+    try {
+      const data = await requestInitialSiteData(source.action, source.params, source.options);
+      const withCollections = await fillInitialCollections(data);
+      const withCompany = await fillInitialCompany(withCollections, source.action !== "getSiteData");
+      requireVisibleSiteData(withCompany);
+      return limitInitialData(withCompany);
+    } catch (err) {
+      lastError = err;
+    }
+  }
+
+  try {
+    const pageData = requireVisibleSiteData(await loadInitialDataFromPages());
+    return limitInitialData(pageData);
+  } catch (err) {
+    lastError = err;
+  }
+
+  const cached = getCachedInitialSiteData();
+  if (cached) return limitInitialData(cached);
+  throw lastError instanceof Error
+    ? lastError
+    : new Error("De websitegegevens konden tijdelijk niet worden geladen.");
 }
 
 export async function getProductsPage(offset = 0, limit = 6): Promise<PageResult<ProductItem>> {
@@ -157,6 +199,86 @@ export async function getProductsPage(offset = 0, limit = 6): Promise<PageResult
     const data = await getInitialSiteData();
     return slicePage(data.producten || [], offset, limit);
   }
+}
+
+async function requestInitialSiteData(
+  action: string,
+  params: Record<string, string | number | boolean | undefined>,
+  options: { fetchTimeoutMs?: number; jsonpTimeoutMs?: number },
+): Promise<SiteData> {
+  const response = await requestWebApp(action, params, options);
+  if (action === "getFastSiteData") debugSiteData("FAST SITE RESPONSE", response);
+  return normalizeSiteData(response);
+}
+
+async function fillInitialCollections(data: SiteData): Promise<SiteData> {
+  const [productsResult, portfolioResult] = await Promise.allSettled([
+    data.producten?.length ? Promise.resolve(data.producten) : loadProductsForHomepage(),
+    data.portfolio?.length ? Promise.resolve(data.portfolio) : loadPortfolioForHomepage(),
+  ]);
+
+  return {
+    ...data,
+    producten:
+      data.producten?.length || productsResult.status !== "fulfilled"
+        ? data.producten || []
+        : productsResult.value,
+    portfolio:
+      data.portfolio?.length || portfolioResult.status !== "fulfilled"
+        ? data.portfolio || []
+        : portfolioResult.value,
+  };
+}
+
+async function fillInitialCompany(data: SiteData, allowFallback: boolean): Promise<SiteData> {
+  if (hasMeaningfulCompany(data.bedrijfsgegevens) || !allowFallback) return data;
+  try {
+    const fullData = await requestInitialSiteData(
+      "getSiteData",
+      {},
+      { fetchTimeoutMs: 2600, jsonpTimeoutMs: 9000 },
+    );
+    return {
+      ...data,
+      bedrijfsgegevens: hasMeaningfulCompany(fullData.bedrijfsgegevens)
+        ? fullData.bedrijfsgegevens
+        : data.bedrijfsgegevens,
+      producten: data.producten?.length ? data.producten : fullData.producten || [],
+      portfolio: data.portfolio?.length ? data.portfolio : fullData.portfolio || [],
+    };
+  } catch {
+    return data;
+  }
+}
+
+async function loadInitialDataFromPages(): Promise<SiteData> {
+  const [productsResult, portfolioResult] = await Promise.allSettled([
+    loadProductsForHomepage(),
+    loadPortfolioForHomepage(),
+  ]);
+  return {
+    ok: true,
+    producten: productsResult.status === "fulfilled" ? productsResult.value : [],
+    portfolio: portfolioResult.status === "fulfilled" ? portfolioResult.value : [],
+  };
+}
+
+async function loadProductsForHomepage(): Promise<ProductItem[]> {
+  const page = normalizeProductPage(
+    await requestWebApp("getProductsPage", { offset: 0, limit: 3 }, { fetchTimeoutMs: 1800, jsonpTimeoutMs: 5200 }),
+    0,
+    3,
+  );
+  return page.items;
+}
+
+async function loadPortfolioForHomepage(): Promise<PortfolioItem[]> {
+  const page = normalizePortfolioPage(
+    await requestWebApp("getPortfolioPage", { offset: 0, limit: 3 }, { fetchTimeoutMs: 1800, jsonpTimeoutMs: 5200 }),
+    0,
+    3,
+  );
+  return page.items;
 }
 
 export async function getPortfolioPage(offset = 0, limit = 6): Promise<PageResult<PortfolioItem>> {
@@ -377,12 +499,14 @@ function normalizeSiteData(value: unknown): SiteData {
   const input = asRecord(value);
   if (!input || input.ok === false) return { ok: false };
 
-  const bedrijfsgegevens = normalizeCompany(input.bedrijfsgegevens || input.company);
+  const bedrijfsgegevens = normalizeCompany(
+    input.bedrijfsgegevens || input.company || input.business || input.bedrijf,
+  );
   return {
     ok: input.ok === undefined ? Boolean(bedrijfsgegevens) : Boolean(input.ok),
     bedrijfsgegevens,
-    producten: normalizeRows(input.producten, normalizeProduct),
-    portfolio: normalizeRows(input.portfolio, normalizePortfolio),
+    producten: normalizeRows(firstArray(input.producten, input.products), normalizeProduct),
+    portfolio: normalizeRows(firstArray(input.portfolio, input.projects), normalizePortfolio),
   };
 }
 
@@ -396,16 +520,29 @@ function limitInitialData(data: SiteData): SiteData {
 
 function requireVisibleSiteData(data: SiteData): SiteData {
   if (!data.ok) throw new Error("Website data niet beschikbaar");
-  if (!data.bedrijfsgegevens && !data.producten?.length && !data.portfolio?.length) {
+  if (!hasVisibleSiteData(data)) {
     throw new Error("Website data is leeg");
   }
   return data;
 }
 
+function hasVisibleSiteData(data: SiteData): boolean {
+  return Boolean(
+    hasMeaningfulCompany(data.bedrijfsgegevens) ||
+      data.producten?.length ||
+      data.portfolio?.length,
+  );
+}
+
+function hasMeaningfulCompany(company: Bedrijfsgegevens | undefined): boolean {
+  if (!company) return false;
+  return Object.entries(company).some(([key, value]) => key !== "actief" && Boolean(toText(value)));
+}
+
 function normalizeProductPage(value: unknown, offset: number, limit: number): PageResult<ProductItem> {
   const input = asRecord(value);
   if (!input || input.ok === false) throw new Error("Geen producten ontvangen");
-  const rows = input.items || input.producten || input.products || [];
+  const rows = firstArray(input.items, input.producten, input.products);
   const items = normalizeRows(rows, normalizeProduct);
   if (!input.items && (input.producten || input.products)) return slicePage(items, offset, limit);
   return pageResult(items, input, offset, limit);
@@ -414,7 +551,7 @@ function normalizeProductPage(value: unknown, offset: number, limit: number): Pa
 function normalizePortfolioPage(value: unknown, offset: number, limit: number): PageResult<PortfolioItem> {
   const input = asRecord(value);
   if (!input || input.ok === false) throw new Error("Geen portfolio ontvangen");
-  const rows = input.items || input.portfolio || input.projects || [];
+  const rows = firstArray(input.items, input.portfolio, input.projects);
   const items = normalizeRows(rows, normalizePortfolio);
   if (!input.items && (input.portfolio || input.projects)) return slicePage(items, offset, limit);
   return pageResult(items, input, offset, limit);
@@ -593,6 +730,11 @@ function normalizeRows<T>(value: unknown, normalize: (row: unknown) => T | null)
     : [];
 }
 
+function firstArray(...values: unknown[]): unknown[] {
+  const arrays = values.filter(Array.isArray);
+  return arrays.find((value) => value.length > 0) || arrays[0] || [];
+}
+
 function asRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -618,9 +760,20 @@ function toNumber(value: unknown): number | undefined {
 function toBoolean(value: unknown, fallback = false): boolean {
   if (value === undefined || value === null || value === "") return fallback;
   if (typeof value === "boolean") return value;
-  return !["false", "nee", "no", "0", "uit", "inactive"].includes(
+  return !["false", "nee", "no", "0", "uit", "inactive", "inactief", "niet actief"].includes(
     String(value).trim().toLowerCase(),
   );
+}
+
+function getCachedInitialSiteData(): SiteData | undefined {
+  const cached = normalizeSiteData(readStorageJson("vanappiah_site_initial"));
+  const data: SiteData = {
+    ok: true,
+    bedrijfsgegevens: cached.bedrijfsgegevens,
+    producten: uniqueByPublicId([...(cached.producten || []), ...getCachedProducts()], getProductId),
+    portfolio: uniqueByPublicId([...(cached.portfolio || []), ...getCachedPortfolio()], getPortfolioId),
+  };
+  return hasVisibleSiteData(data) ? data : undefined;
 }
 
 function getCachedProducts(): ProductItem[] {

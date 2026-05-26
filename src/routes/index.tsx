@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { Eyebrow, Section } from "@/components/site/Section";
 import { LazySheetImage } from "@/components/site/LazySheetImage";
 import { useSiteData } from "@/hooks/use-site-data";
@@ -50,7 +51,7 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   const queryClient = useQueryClient();
-  const { data, isLoading } = useSiteData();
+  const { data, error, isLoading } = useSiteData();
   const company = data?.bedrijfsgegevens;
   const products = (data?.producten || []).slice(0, 3);
   const portfolio = (data?.portfolio || []).slice(0, 3);
@@ -62,6 +63,14 @@ function Index() {
     company?.openingstijd_3,
   ].filter(Boolean);
   const heroImage = portfolio.map((item) => imageSource(item.images?.[0])).find(Boolean);
+
+  useEffect(() => {
+    if (isHomeDebugEnabled()) console.log("HOME DATA", data);
+  }, [data]);
+
+  useEffect(() => {
+    if (error && isHomeDebugEnabled()) console.log("HOME ERROR", error);
+  }, [error]);
 
   return (
     <>
@@ -83,7 +92,9 @@ function Index() {
               Websites, webshops en marketing voor bedrijven in Amsterdam en heel Nederland.
             </h1>
             <p className="mt-6 max-w-2xl text-xl font-medium text-background/95">
-              Vanuit Amsterdam-Noord helpt {name} ondernemers door heel Nederland met professionele websites, webshops, branding en marketing die vertrouwen uitstralen en klanten opleveren.
+              Vanuit Amsterdam-Noord helpt {name} ondernemers door heel Nederland met professionele
+              websites, webshops, branding en marketing die vertrouwen uitstralen en klanten
+              opleveren.
             </p>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-background/75 sm:text-lg">
               {company?.beschrijving ||
@@ -121,7 +132,8 @@ function Index() {
               Direct contact met {name}.
             </h2>
             <p className="mt-4 max-w-xl text-muted-foreground">
-              Kies het kanaal dat bij uw vraag past en zet de eerste stap naar een helder digitaal traject.
+              Kies het kanaal dat bij uw vraag past en zet de eerste stap naar een helder digitaal
+              traject.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -151,25 +163,50 @@ function Index() {
               Alles voor een sterke online uitstraling.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Van Appiah combineert webdesign, techniek, branding en marketing voor ondernemers in Amsterdam, Amsterdam-Noord en heel Nederland.
+              Van Appiah combineert webdesign, techniek, branding en marketing voor ondernemers in
+              Amsterdam, Amsterdam-Noord en heel Nederland.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
-              <Link to="/diensten" className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90">
+              <Link
+                to="/diensten"
+                className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90"
+              >
                 Bekijk diensten
               </Link>
-              <Link to="/marketing-amsterdam-noord" className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-surface">
+              <Link
+                to="/marketing-amsterdam-noord"
+                className="rounded-full border border-border px-5 py-2.5 text-sm font-medium hover:bg-surface"
+              >
                 Marketing Amsterdam-Noord
               </Link>
             </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             {[
-              ["Website laten maken", "Moderne websites voor bedrijven die vertrouwen willen opbouwen en aanvragen willen binnenhalen."],
-              ["Webshop laten maken", "Overzichtelijke webshops voor merken, salons en lokale ondernemers met groeiambitie."],
-              ["Marketing", "Campagnes, social media en content die uw bedrijf zichtbaar maken bij de juiste doelgroep."],
-              ["Branding", "Een herkenbare stijl, tone of voice en visuele basis die professioneel aanvoelt."],
-              ["Social media content", "Contentlijnen en visuals voor Instagram, TikTok en andere kanalen."],
-              ["Digitale systemen", "Automatisering, formulieren en dashboards die dagelijkse processen versimpelen."],
+              [
+                "Website laten maken",
+                "Moderne websites voor bedrijven die vertrouwen willen opbouwen en aanvragen willen binnenhalen.",
+              ],
+              [
+                "Webshop laten maken",
+                "Overzichtelijke webshops voor merken, salons en lokale ondernemers met groeiambitie.",
+              ],
+              [
+                "Marketing",
+                "Campagnes, social media en content die uw bedrijf zichtbaar maken bij de juiste doelgroep.",
+              ],
+              [
+                "Branding",
+                "Een herkenbare stijl, tone of voice en visuele basis die professioneel aanvoelt.",
+              ],
+              [
+                "Social media content",
+                "Contentlijnen en visuals voor Instagram, TikTok en andere kanalen.",
+              ],
+              [
+                "Digitale systemen",
+                "Automatisering, formulieren en dashboards die dagelijkse processen versimpelen.",
+              ],
             ].map(([title, text]) => (
               <article key={title} className="rounded-3xl border border-border bg-surface p-5">
                 <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
@@ -307,9 +344,18 @@ function Index() {
       <Section className="py-12 md:py-20">
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            ["Modern en rustig", "Een luxe, minimalistische uitstraling die past bij bedrijven die serieus genomen willen worden."],
-            ["Gebouwd voor resultaat", "Heldere pagina's, snelle laadtijden en duidelijke call-to-actions richting contact of offerte."],
-            ["Lokaal gevestigd, landelijk actief", "Gevestigd in Amsterdam-Noord, actief voor bedrijven in Amsterdam en heel Nederland met korte lijnen en persoonlijk advies."],
+            [
+              "Modern en rustig",
+              "Een luxe, minimalistische uitstraling die past bij bedrijven die serieus genomen willen worden.",
+            ],
+            [
+              "Gebouwd voor resultaat",
+              "Heldere pagina's, snelle laadtijden en duidelijke call-to-actions richting contact of offerte.",
+            ],
+            [
+              "Lokaal gevestigd, landelijk actief",
+              "Gevestigd in Amsterdam-Noord, actief voor bedrijven in Amsterdam en heel Nederland met korte lijnen en persoonlijk advies.",
+            ],
           ].map(([title, text]) => (
             <article key={title} className="rounded-3xl border border-border p-7">
               <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
@@ -326,13 +372,22 @@ function Index() {
             Website laten maken in Amsterdam-Noord door Van Appiah.
           </h2>
           <p className="mt-5 max-w-3xl text-background/75">
-            Voor lokale ondernemers is een goede website vaak het eerste vertrouwensmoment. Vanuit Amsterdam-Noord helpt Van Appiah bedrijven in Amsterdam en door heel Nederland met webdesign, webshops, branding en marketing die professioneel voelt en makkelijk contact oplevert.
+            Voor lokale ondernemers is een goede website vaak het eerste vertrouwensmoment. Vanuit
+            Amsterdam-Noord helpt Van Appiah bedrijven in Amsterdam en door heel Nederland met
+            webdesign, webshops, branding en marketing die professioneel voelt en makkelijk contact
+            oplevert.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/websites-laten-maken-amsterdam-noord" className="rounded-full bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:opacity-90">
+            <Link
+              to="/websites-laten-maken-amsterdam-noord"
+              className="rounded-full bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:opacity-90"
+            >
               Website laten maken in Amsterdam-Noord
             </Link>
-            <Link to="/contact" className="rounded-full border border-background/25 px-5 py-2.5 text-sm font-medium hover:bg-background/10">
+            <Link
+              to="/contact"
+              className="rounded-full border border-background/25 px-5 py-2.5 text-sm font-medium hover:bg-background/10"
+            >
               Plan een kennismaking
             </Link>
           </div>
@@ -383,6 +438,14 @@ function HomeSkeletonGrid() {
         </div>
       ))}
     </div>
+  );
+}
+
+function isHomeDebugEnabled(): boolean {
+  return (
+    import.meta.env.DEV ||
+    import.meta.env.MODE === "staging" ||
+    import.meta.env.VITE_DEBUG_SITE_DATA === "true"
   );
 }
 

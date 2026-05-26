@@ -30,19 +30,12 @@ const sharedQueryOptions = {
 
 export function useSiteData() {
   const mounted = useMounted();
-  const queryClient = useQueryClient();
   const query = useQuery<SiteData>({
     queryKey: ["site-initial"],
     queryFn: getInitialSiteData,
     enabled: mounted,
     ...sharedQueryOptions,
   });
-
-  useEffect(() => {
-    if (queryClient.getQueryData<SiteData>(["site-initial"])) return;
-    const stored = readStored<SiteData>("vanappiah_site_initial");
-    if (stored) queryClient.setQueryData(["site-initial"], stored);
-  }, [queryClient]);
 
   usePersistedPublicData("vanappiah_site_initial", query.data);
   return hideDataUntilMounted(query, mounted);
