@@ -11,7 +11,7 @@ const faqs = [
   {
     question: "Helpt Van Appiah ook met social media marketing?",
     answer:
-      "Ja. Van Appiah helpt met social media content, positionering, planning en campagnes voor ondernemers, artiesten, salons, merken en lokale bedrijven.",
+      "Ja. Van Appiah helpt met social media content, positionering, planning en campagnes voor ondernemers, artiesten, salons, merken en bedrijven in Amsterdam en heel Nederland.",
   },
   {
     question: "Kan ik marketing combineren met een nieuwe website?",
@@ -30,18 +30,22 @@ export const Route = createFileRoute("/marketing-amsterdam-noord")({
     seo({
       title: "Marketing bureau Amsterdam-Noord | Van Appiah",
       description:
-        "Van Appiah helpt bedrijven in Amsterdam-Noord met marketing, social media, branding, websites en online zichtbaarheid.",
+        "Van Appiah helpt bedrijven in Amsterdam-Noord, Amsterdam en heel Nederland met marketing, social media, branding, websites en online zichtbaarheid.",
       path: "/marketing-amsterdam-noord",
       keywords: [
         "marketing bureau Amsterdam Noord",
+        "marketing bureau Amsterdam",
         "social media marketing Amsterdam",
+        "social media marketing voor bedrijven",
         "branding voor bedrijven Amsterdam",
+        "branding voor bedrijven",
+        "marketing voor bedrijven",
         "Van Appiah marketing",
       ],
       jsonLd: [
         serviceSchema(
           "Marketing bureau Amsterdam-Noord",
-          "Marketing, social media, branding en online zichtbaarheid voor ondernemers in Amsterdam-Noord.",
+          "Marketing, social media, branding en online zichtbaarheid voor ondernemers in Amsterdam-Noord, Amsterdam en heel Nederland.",
           "/marketing-amsterdam-noord",
         ),
         faqSchema(faqs),
@@ -63,7 +67,8 @@ function MarketingAmsterdamNoordPage() {
           Marketing bureau voor ondernemers in Amsterdam-Noord.
         </h1>
         <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground">
-          Van Appiah helpt bedrijven met marketing, social media, branding en online zichtbaarheid. We zorgen dat uw merk professioneel voelt, herkenbaar wordt en klanten makkelijker de stap naar contact zetten.
+          Van Appiah helpt bedrijven met marketing, social media, branding en online zichtbaarheid. Gevestigd in Amsterdam-Noord, actief voor bedrijven in heel Nederland. We zorgen dat uw merk professioneel voelt, herkenbaar wordt en klanten makkelijker de stap naar contact zetten.
+          Hoewel Van Appiah gevestigd is in Amsterdam-Noord, werken we voor ondernemers in Amsterdam en door heel Nederland.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link to="/offerte" className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background hover:opacity-90">
@@ -80,7 +85,7 @@ function MarketingAmsterdamNoordPage() {
           {[
             ["Social media marketing", "Content en campagnes voor Instagram, TikTok en andere kanalen die passen bij uw doelgroep."],
             ["Branding", "Een herkenbare uitstraling met duidelijke visuals, tone of voice en merkgevoel."],
-            ["Online zichtbaarheid", "SEO-basis, lokale landingspagina's en content die klanten helpt u te vinden."],
+            ["Online zichtbaarheid", "SEO-basis, lokale landingspagina's en bredere content die klanten helpt u te vinden."],
             ["Website en funnel", "Pagina's die bezoekers niet alleen informeren, maar richting offerte of contact sturen."],
             ["Contentstrategie", "Een duidelijke lijn voor posts, teksten, acties en promoties."],
             ["Groei en optimalisatie", "Meten, bijsturen en verbeteren zodra uw basis staat."],
@@ -136,10 +141,10 @@ function MarketingAmsterdamNoordPage() {
       <Section className="py-12 md:py-20">
         <div className="rounded-[2rem] bg-foreground p-8 text-background sm:p-10 md:p-14">
           <h2 className="max-w-3xl text-3xl font-semibold tracking-tight md:text-5xl">
-            Wilt u zichtbaarder worden in Amsterdam?
+            Wilt u zichtbaarder worden in Amsterdam en daarbuiten?
           </h2>
           <p className="mt-5 max-w-2xl text-background/75">
-            Vraag een offerte aan voor marketing, social media, branding of een website die uw marketing sterker maakt.
+            Vraag een offerte aan voor marketing, social media, branding of een website die uw marketing sterker maakt in Amsterdam en heel Nederland.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/offerte" className="rounded-full bg-background px-6 py-3 text-sm font-medium text-foreground hover:opacity-90">

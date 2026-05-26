@@ -11,7 +11,7 @@ const faqs = [
   {
     question: "Voor welke bedrijven bouwt Van Appiah websites?",
     answer:
-      "Wij werken voor lokale ondernemers, salons, kledingmerken, artiesten, servicebedrijven en kleine tot middelgrote ondernemingen in Amsterdam-Noord en omgeving.",
+      "Wij werken voor lokale ondernemers in Amsterdam-Noord en Amsterdam, maar ook voor salons, kledingmerken, artiesten, servicebedrijven en kleine tot middelgrote ondernemingen door heel Nederland.",
   },
   {
     question: "Kan Van Appiah ook helpen met marketing na de website?",
@@ -30,18 +30,21 @@ export const Route = createFileRoute("/websites-laten-maken-amsterdam-noord")({
     seo({
       title: "Website laten maken Amsterdam-Noord | Van Appiah",
       description:
-        "Laat een professionele website maken voor je bedrijf in Amsterdam-Noord. Van Appiah helpt ondernemers met websites, webshops, branding en marketing.",
+        "Laat een professionele website maken voor je bedrijf in Amsterdam-Noord, Amsterdam of heel Nederland. Van Appiah helpt ondernemers met websites, webshops, branding en marketing.",
       path: "/websites-laten-maken-amsterdam-noord",
       keywords: [
         "website laten maken Amsterdam Noord",
         "webdesigner Amsterdam Noord",
         "website laten maken Amsterdam",
+        "website laten maken Nederland",
+        "website laten maken voor bedrijf",
         "professionele website laten maken",
+        "webdesign voor ondernemers",
       ],
       jsonLd: [
         serviceSchema(
           "Website laten maken Amsterdam-Noord",
-          "Professionele websites, webshops en online zichtbaarheid voor ondernemers in Amsterdam-Noord.",
+          "Professionele websites, webshops en online zichtbaarheid voor ondernemers in Amsterdam-Noord, Amsterdam en heel Nederland.",
           "/websites-laten-maken-amsterdam-noord",
         ),
         faqSchema(faqs),
@@ -63,7 +66,8 @@ function WebsitesAmsterdamNoordPage() {
           Website laten maken in Amsterdam-Noord.
         </h1>
         <p className="mt-6 max-w-3xl text-lg leading-relaxed text-muted-foreground">
-          Van Appiah bouwt professionele websites voor ondernemers in Amsterdam-Noord en omgeving. Denk aan bedrijven, salons, kledingmerken, artiesten en lokale dienstverleners die online betrouwbaar, modern en makkelijk bereikbaar willen zijn.
+          Van Appiah bouwt professionele websites voor ondernemers in Amsterdam-Noord, Amsterdam en heel Nederland. Denk aan bedrijven, salons, kledingmerken, artiesten en dienstverleners die online betrouwbaar, modern en makkelijk bereikbaar willen zijn.
+          Hoewel Van Appiah gevestigd is in Amsterdam-Noord, werken we voor ondernemers in Amsterdam en door heel Nederland.
         </p>
         <div className="mt-8 flex flex-wrap gap-3">
           <Link to="/offerte" className="rounded-full bg-foreground px-6 py-3 text-sm font-medium text-background hover:opacity-90">
@@ -90,7 +94,7 @@ function WebsitesAmsterdamNoordPage() {
               ["Zakelijke websites", "Heldere sites voor bedrijven die professioneel willen overkomen."],
               ["Webshops", "Online verkoop voor merken, retail en lokale producten."],
               ["Branding", "Logo, stijl en merkgevoel dat past bij uw doelgroep."],
-              ["SEO-basis", "Structuur, metadata en teksten gericht op lokale vindbaarheid."],
+              ["SEO-basis", "Structuur, metadata en teksten gericht op lokale vindbaarheid en bredere landelijke zoekwoorden."],
             ].map(([title, text]) => (
               <article key={title} className="rounded-3xl border border-border bg-surface p-6">
                 <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
@@ -106,7 +110,7 @@ function WebsitesAmsterdamNoordPage() {
           <Eyebrow>Waarom Van Appiah</Eyebrow>
           <div className="mt-6 grid gap-6 md:grid-cols-3">
             {[
-              ["Lokale focus", "Wij begrijpen de snelheid en directheid van ondernemers in Amsterdam-Noord."],
+              ["Lokale basis", "Wij begrijpen de snelheid en directheid van ondernemers in Amsterdam-Noord en bouwen tegelijk voor bedrijven door heel Nederland."],
               ["Luxe uitstraling", "Minimalistisch design dat serieus, modern en betrouwbaar voelt."],
               ["Groei na livegang", "Naast webdesign helpen we met marketing, content en optimalisatie."],
             ].map(([title, text]) => (

@@ -36,7 +36,7 @@ De Web App URL staat in `src/lib/api.ts`:
 
 ```ts
 export const WEB_APP_URL =
-  "https://script.google.com/macros/s/AKfycbyvM06HKc1zS_mR_tYGkcDnrNo3Va3EFH0F1GWYVgGEhlwci9FcbKCItSxstYTKNh5f/exec";
+  "https://script.google.com/macros/s/AKfycbxjN8mHsT_OJnGHuxzErclU25OGyfxG7DnbSxUYbfGphSrHUY2zKIh7gfBRnmiis8Xl/exec";
 ```
 
 De site ondersteunt nu lichte acties voor snelle eerste rendering:
@@ -350,7 +350,7 @@ De centrale normalisatie in `src/lib/api.ts` vangt deze gevallen op.
 Controleer eerst de webapp-response direct:
 
 ```txt
-https://script.google.com/macros/s/AKfycbyvM06HKc1zS_mR_tYGkcDnrNo3Va3EFH0F1GWYVgGEhlwci9FcbKCItSxstYTKNh5f/exec?action=getSiteData
+https://script.google.com/macros/s/AKfycbxjN8mHsT_OJnGHuxzErclU25OGyfxG7DnbSxUYbfGphSrHUY2zKIh7gfBRnmiis8Xl/exec?action=getSiteData
 ```
 
 Let op:

@@ -67,6 +67,7 @@ export function Footer() {
               <div className="flex flex-col gap-2">
                 <input
                   type="text"
+                  aria-label="Naam voor nieuwsbrief"
                   value={naam}
                   onChange={(e) => setNaam(e.target.value)}
                   placeholder="Naam (optioneel)"
@@ -74,6 +75,7 @@ export function Footer() {
                 />
                 <input
                   type="email"
+                  aria-label="E-mail voor nieuwsbrief"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -149,7 +151,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 pt-6 border-t border-border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-muted-foreground">
-          <p>© {new Date().getFullYear()} {bedrijfsnaam}. Websites, webshops en marketing voor Amsterdam-Noord.</p>
+          <p>© {new Date().getFullYear()} {bedrijfsnaam}. Gevestigd in Amsterdam-Noord, actief voor bedrijven in heel Nederland.</p>
           <p>Gemaakt met zorg in Amsterdam</p>
         </div>
       </div>

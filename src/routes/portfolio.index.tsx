@@ -8,21 +8,25 @@ import { getPortfolioDetail, getPortfolioId, toneFor } from "@/lib/api";
 import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/portfolio/")({
-  head: () => ({
-    meta: [
-      ...seo({
+  head: () => {
+    const tags = seo({
         title: "Portfolio webdesign en digitale projecten | Van Appiah",
         description:
-          "Bekijk projecten van Van Appiah: websites, webshops, branding en digitale oplossingen voor ondernemers en lokale bedrijven.",
+          "Bekijk projecten van Van Appiah: websites, webshops, branding en digitale oplossingen voor ondernemers in Amsterdam en heel Nederland.",
         path: "/portfolio",
-        keywords: ["webdesign project Van Appiah", "portfolio websites Amsterdam", "website ontwerp Amsterdam"],
+        keywords: [
+          "webdesign project Van Appiah",
+          "portfolio websites Amsterdam",
+          "website ontwerp Amsterdam",
+          "website laten maken Nederland",
+        ],
         jsonLd: breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Portfolio", path: "/portfolio" },
         ]),
-      }).meta,
-    ],
-  }),
+      });
+    return tags;
+  },
   component: PortfolioPage,
 });
 
@@ -60,7 +64,7 @@ function PortfolioPage() {
           Een selectie van<br />wat wij hebben gebouwd.
         </h1>
         <p className="mt-5 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl">
-          Bekijk hoe Van Appiah websites, webshops, branding en digitale systemen inzet voor ondernemers, lokale bedrijven en groeiende merken.
+          Bekijk hoe Van Appiah websites, webshops, branding en digitale systemen inzet voor ondernemers in Amsterdam, lokale bedrijven en groeiende merken door heel Nederland.
         </p>
       </Section>
 
@@ -89,7 +93,7 @@ function PortfolioPage() {
 
       <Section className="pb-16 md:pb-20">
         {isLoading && items.length === 0 && <LoadingGrid />}
-        {isError && (
+        {isError && items.length === 0 && (
           <p className="text-center text-muted-foreground py-16">
             De projectenoverzicht kan tijdelijk niet worden geladen.
           </p>
@@ -100,7 +104,7 @@ function PortfolioPage() {
           </p>
         )}
 
-        {!isLoading && !isError && filtered.length > 0 && (
+        {!isLoading && filtered.length > 0 && (
           <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
             {filtered.map((c, i) => {
               const id = getPortfolioId(c);

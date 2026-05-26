@@ -16,22 +16,26 @@ import {
 import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/portfolio/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      ...seo({
+  head: ({ params }) => {
+    const tags = seo({
         title: "Webdesign project bekijken | Van Appiah",
         description:
           "Bekijk dit project van Van Appiah en ontdek hoe websites, branding en digitale oplossingen ondernemers helpen groeien.",
         path: `/portfolio/${params.slug}`,
-        keywords: ["webdesign project Amsterdam", "portfolio Van Appiah", "website ontwerp Amsterdam-Noord"],
+        keywords: [
+          "webdesign project Amsterdam",
+          "portfolio Van Appiah",
+          "website ontwerp Amsterdam-Noord",
+          "website laten maken Nederland",
+        ],
         jsonLd: breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Portfolio", path: "/portfolio" },
           { name: params.slug, path: `/portfolio/${params.slug}` },
         ]),
-      }).meta,
-    ],
-  }),
+      });
+    return tags;
+  },
   component: ProjectDetail,
 });
 

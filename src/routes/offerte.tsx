@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { Section, Eyebrow } from "@/components/site/Section";
 import { postAction } from "@/lib/api";
@@ -7,21 +7,26 @@ import { useQuoteOptions } from "@/hooks/use-site-data";
 import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/offerte")({
-  head: () => ({
-    meta: [
-      ...seo({
+  head: () => {
+    const tags = seo({
         title: "Offerte aanvragen voor website of marketing | Van Appiah",
         description:
-          "Vraag een vrijblijvende offerte aan voor een website, webshop, branding, marketing of digitaal systeem van Van Appiah.",
+          "Vraag een vrijblijvende offerte aan voor een website, webshop, branding, marketing of digitaal systeem van Van Appiah in Amsterdam of heel Nederland.",
         path: "/offerte",
-        keywords: ["offerte website laten maken", "website laten maken Amsterdam", "marketing offerte Amsterdam"],
+        keywords: [
+          "offerte website laten maken",
+          "website laten maken Amsterdam",
+          "website laten maken Nederland",
+          "webshop laten maken",
+          "marketing voor bedrijven",
+        ],
         jsonLd: breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Offerte", path: "/offerte" },
         ]),
-      }).meta,
-    ],
-  }),
+      });
+    return tags;
+  },
   component: OffertePage,
 });
 
@@ -89,7 +94,7 @@ function OffertePage() {
           Vraag een<br />vrijblijvende offerte aan.
         </h1>
         <p className="mt-5 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl">
-          Vul het formulier in en we sturen binnen een werkdag een gerichte offerte voor uw website, webshop, branding of marketing.
+          Vul het formulier in en we sturen binnen een werkdag een gerichte offerte voor uw website, webshop, branding of marketing in Amsterdam of heel Nederland.
         </p>
       </Section>
 
@@ -120,7 +125,7 @@ function OffertePage() {
               </div>
               <div className="grid sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+                  <label htmlFor="offerte-dienst" className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
                     Gewenste dienst
                   </label>
                   {optionsLoading && (
@@ -129,6 +134,7 @@ function OffertePage() {
                     </p>
                   )}
                   <select
+                    id="offerte-dienst"
                     required
                     value={form.gewenste_dienst}
                     onChange={(e) => update("gewenste_dienst", e.target.value)}
@@ -141,10 +147,11 @@ function OffertePage() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+                  <label htmlFor="offerte-budget" className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
                     Budget <span className="ml-1 text-muted-foreground/60 normal-case">(optioneel)</span>
                   </label>
                   <select
+                    id="offerte-budget"
                     value={form.budget}
                     onChange={(e) => update("budget", e.target.value)}
                     className="w-full rounded-2xl border border-border bg-surface px-4 py-3 text-sm outline-none focus:border-foreground transition-colors"
@@ -159,10 +166,11 @@ function OffertePage() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+                <label htmlFor="offerte-beschrijving" className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
                   Beschrijving van het project
                 </label>
                 <textarea
+                  id="offerte-beschrijving"
                   required
                   rows={6}
                   value={form.beschrijving_project}
@@ -199,13 +207,15 @@ function Field({
   type?: string;
   required?: boolean;
 }) {
+  const id = useId();
   return (
     <div>
-      <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+      <label htmlFor={id} className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
         {label}
         {!required && <span className="ml-1 text-muted-foreground/60 normal-case">(optioneel)</span>}
       </label>
       <input
+        id={id}
         type={type}
         required={required}
         value={value}

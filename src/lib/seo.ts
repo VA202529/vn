@@ -8,13 +8,15 @@ export const SOCIAL_LINKS = [
 
 export const SERVICE_TYPES = [
   "Website laten maken",
-  "Webdesign",
   "Webshop ontwikkeling",
-  "Marketing",
+  "Webdesign voor bedrijven",
+  "Marketing voor bedrijven",
   "Social media marketing",
   "Branding",
-  "Digitale automatisering",
+  "Digitale systemen",
 ];
+
+const AREA_SERVED = ["Amsterdam-Noord", "Amsterdam", "Noord-Holland", "Nederland"];
 
 type SeoInput = {
   title: string;
@@ -78,7 +80,7 @@ export function organizationSchema() {
     alternateName: "VA",
     url: SITE_URL,
     sameAs: SOCIAL_LINKS,
-    areaServed: ["Amsterdam-Noord", "Amsterdam", "Noord-Holland"],
+    areaServed: AREA_SERVED,
     knowsAbout: SERVICE_TYPES,
   };
 }
@@ -106,11 +108,11 @@ export function localBusinessSchema() {
     name: "Van Appiah",
     alternateName: "VA",
     url: SITE_URL,
-    areaServed: ["Amsterdam-Noord", "Amsterdam", "Noord-Holland"],
+    areaServed: AREA_SERVED,
     sameAs: SOCIAL_LINKS,
     priceRange: "€€",
     description:
-      "Van Appiah helpt ondernemers in Amsterdam-Noord en omgeving met websites, webshops, branding, marketing en digitale systemen.",
+      "Van Appiah is gevestigd in Amsterdam-Noord en helpt bedrijven in Amsterdam en heel Nederland met websites, webshops, branding, marketing en digitale systemen.",
     serviceType: SERVICE_TYPES,
   };
 }
@@ -126,8 +128,8 @@ export function serviceSchema(name: string, description: string, path: string) {
       name: "Van Appiah",
       url: SITE_URL,
     },
-    areaServed: ["Amsterdam-Noord", "Amsterdam", "Noord-Holland"],
-    serviceType: name,
+    areaServed: AREA_SERVED,
+    serviceType: SERVICE_TYPES,
     url: canonical(path),
   };
 }

@@ -2,7 +2,7 @@
 // Geen technische details lekken naar de UI — alleen nette data en meldingen.
 
 export const WEB_APP_URL =
-  "https://script.google.com/macros/s/AKfycbyvM06HKc1zS_mR_tYGkcDnrNo3Va3EFH0F1GWYVgGEhlwci9FcbKCItSxstYTKNh5f/exec";
+  "https://script.google.com/macros/s/AKfycbxjN8mHsT_OJnGHuxzErclU25OGyfxG7DnbSxUYbfGphSrHUY2zKIh7gfBRnmiis8Xl/exec";
 
 export type Bedrijfsgegevens = {
   id?: string;
@@ -123,21 +123,17 @@ export async function loadSiteData(): Promise<SiteData> {
 }
 
 export async function getInitialSiteData(): Promise<SiteData> {
-  try {
-    const fast = normalizeSiteData(await requestWebApp("getFastSiteData"));
-    return limitInitialData(fast);
-  } catch {
-    // Fallback voor deployments waar getFastSiteData nog niet beschikbaar is.
-  }
+  const attempts = [
+    requestWebApp("getFastSiteData", {}, { fetchTimeoutMs: 1800, jsonpTimeoutMs: 4500 }),
+    requestWebApp(
+      "getInitialSiteData",
+      { productsLimit: 4, portfolioLimit: 4 },
+      { fetchTimeoutMs: 1800, jsonpTimeoutMs: 4500 },
+    ),
+    requestWebApp("getSiteData", {}, { fetchTimeoutMs: 2600, jsonpTimeoutMs: 9000 }),
+  ].map((promise) => promise.then((value) => requireVisibleSiteData(normalizeSiteData(value))));
 
-  try {
-    const data = normalizeSiteData(
-      await requestWebApp("getInitialSiteData", { productsLimit: 4, portfolioLimit: 4 }),
-    );
-    return limitInitialData(data);
-  } catch {
-    return limitInitialData(await loadSiteData());
-  }
+  return limitInitialData(await firstSuccessful(attempts));
 }
 
 export async function getProductsPage(offset = 0, limit = 6): Promise<PageResult<ProductItem>> {
@@ -148,12 +144,16 @@ export async function getProductsPage(offset = 0, limit = 6): Promise<PageResult
       limit,
     );
     if (offset === 0 && page.items.length === 0) {
+      const cached = getCachedProducts();
+      if (cached.length) return slicePage(cached, offset, limit);
       const data = await getInitialSiteData();
       if (data.producten?.length) return slicePage(data.producten, offset, limit);
     }
     return page;
   } catch {
     if (offset > 0) return emptyPage(offset, limit);
+    const cached = getCachedProducts();
+    if (cached.length) return slicePage(cached, offset, limit);
     const data = await getInitialSiteData();
     return slicePage(data.producten || [], offset, limit);
   }
@@ -167,12 +167,16 @@ export async function getPortfolioPage(offset = 0, limit = 6): Promise<PageResul
       limit,
     );
     if (offset === 0 && page.items.length === 0) {
+      const cached = getCachedPortfolio();
+      if (cached.length) return slicePage(cached, offset, limit);
       const data = await getInitialSiteData();
       if (data.portfolio?.length) return slicePage(data.portfolio, offset, limit);
     }
     return page;
   } catch {
     if (offset > 0) return emptyPage(offset, limit);
+    const cached = getCachedPortfolio();
+    if (cached.length) return slicePage(cached, offset, limit);
     const data = await getInitialSiteData();
     return slicePage(data.portfolio || [], offset, limit);
   }
@@ -180,9 +184,11 @@ export async function getPortfolioPage(offset = 0, limit = 6): Promise<PageResul
 
 export async function getQuoteOptions(): Promise<QuoteOption[]> {
   try {
-    return normalizeQuoteOptions(await requestWebApp("getQuoteOptions"));
+    return normalizeQuoteOptions(
+      await requestWebApp("getQuoteOptions", {}, { fetchTimeoutMs: 1800, jsonpTimeoutMs: 4500 }),
+    );
   } catch {
-    const data = await loadSiteData();
+    const data = await getInitialSiteData();
     return normalizeQuoteOptions(data.producten || []);
   }
 }
@@ -197,7 +203,9 @@ export async function getProductImagesForItem(id?: string, folderId?: string): P
 
 export async function getProductDetail(slug: string): Promise<ProductItem | undefined> {
   try {
-    return normalizeProductDetail(await requestWebApp("getProductDetail", { id: slug, slug }));
+    return normalizeProductDetail(
+      await requestWebApp("getProductDetail", { id: slug, slug }, { fetchTimeoutMs: 1600, jsonpTimeoutMs: 4200 }),
+    );
   } catch {
     const page = await getProductsPage(0, 120);
     return page.items.find((item) => matchesPublicId(item, slug, getProductId));
@@ -206,7 +214,9 @@ export async function getProductDetail(slug: string): Promise<ProductItem | unde
 
 export async function getPortfolioDetail(slug: string): Promise<PortfolioItem | undefined> {
   try {
-    return normalizePortfolioDetail(await requestWebApp("getPortfolioDetail", { id: slug, slug }));
+    return normalizePortfolioDetail(
+      await requestWebApp("getPortfolioDetail", { id: slug, slug }, { fetchTimeoutMs: 1600, jsonpTimeoutMs: 4200 }),
+    );
   } catch {
     const page = await getPortfolioPage(0, 120);
     return page.items.find((item) => matchesPublicId(item, slug, getPortfolioId));
@@ -222,13 +232,16 @@ type ActionPayload =
   | { action: "submitProductRequest"; data: Record<string, string> };
 
 export async function postAction(payload: ActionPayload): Promise<void> {
+  await postFormAction(payload.action, payload.data);
+}
+
+/* Removed legacy fire-and-forget form post.
   // Gebruik text/plain om CORS-preflight bij Apps Script te vermijden.
   // Als we de response niet kunnen lezen, beschouwen we een afgeronde
   // request als succesvol — Apps Script kan strikte CORS opleggen.
   try {
     const res = await fetch(WEB_APP_URL, {
       method: "POST",
-      mode: "no-cors",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
     });
@@ -241,6 +254,78 @@ export async function postAction(payload: ActionPayload): Promise<void> {
     // Bij netwerkfout met CORS kunnen we soms toch een succesvolle verwerking hebben,
     // maar we kunnen het niet bevestigen. We gooien door zodat de UI feedback kan geven.
     throw err instanceof Error ? err : new Error("network");
+  }
+*/
+
+async function postFormAction(action: ActionPayload["action"], data: Record<string, string>): Promise<unknown> {
+  const body = JSON.stringify({ action, data });
+  if (typeof window !== "undefined") return postOpaqueFormAction(body);
+  return postReadableFormAction(body);
+}
+
+async function postOpaqueFormAction(body: string): Promise<{ ok: true }> {
+  if (typeof navigator !== "undefined" && "sendBeacon" in navigator) {
+    const queued = navigator.sendBeacon(
+      WEB_APP_URL,
+      new Blob([body], { type: "text/plain;charset=utf-8" }),
+    );
+    if (queued) return { ok: true };
+  }
+
+  void fetch(WEB_APP_URL, {
+    method: "POST",
+    mode: "no-cors",
+    keepalive: true,
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body,
+  }).catch(() => undefined);
+
+  await delay(650);
+  return { ok: true };
+
+  const controller = typeof AbortController === "undefined" ? undefined : new AbortController();
+  const timeout = controller ? setTimeout(() => controller.abort(), 12000) : undefined;
+
+  try {
+    await fetch(WEB_APP_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body,
+      signal: controller?.signal,
+    });
+    return { ok: true };
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Verzenden duurde te lang. Probeer het opnieuw.");
+    }
+    throw err instanceof Error ? err : new Error("Verzenden mislukt");
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
+async function postReadableFormAction(body: string): Promise<unknown> {
+  const controller = typeof AbortController === "undefined" ? undefined : new AbortController();
+  const timeout = controller ? setTimeout(() => controller.abort(), 12000) : undefined;
+
+  try {
+    const res = await fetch(WEB_APP_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body,
+      signal: controller?.signal,
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.message || "Verzenden mislukt");
+    return json;
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("Verzenden duurde te lang. Probeer het opnieuw.");
+    }
+    throw err instanceof Error ? err : new Error("Verzenden mislukt");
+  } finally {
+    if (timeout) clearTimeout(timeout);
   }
 }
 
@@ -352,21 +437,29 @@ function limitInitialData(data: SiteData): SiteData {
   };
 }
 
+function requireVisibleSiteData(data: SiteData): SiteData {
+  if (!data.ok) throw new Error("Website data niet beschikbaar");
+  if (!data.bedrijfsgegevens && !data.producten?.length && !data.portfolio?.length) {
+    throw new Error("Website data is leeg");
+  }
+  return data;
+}
+
 function normalizeProductPage(value: unknown, offset: number, limit: number): PageResult<ProductItem> {
   const input = asRecord(value);
   if (!input || input.ok === false) throw new Error("Geen producten ontvangen");
-  const rows = input.items || input.producten || [];
+  const rows = input.items || input.producten || input.products || [];
   const items = normalizeRows(rows, normalizeProduct);
-  if (!input.items && input.producten) return slicePage(items, offset, limit);
+  if (!input.items && (input.producten || input.products)) return slicePage(items, offset, limit);
   return pageResult(items, input, offset, limit);
 }
 
 function normalizePortfolioPage(value: unknown, offset: number, limit: number): PageResult<PortfolioItem> {
   const input = asRecord(value);
   if (!input || input.ok === false) throw new Error("Geen portfolio ontvangen");
-  const rows = input.items || input.portfolio || [];
+  const rows = input.items || input.portfolio || input.projects || [];
   const items = normalizeRows(rows, normalizePortfolio);
-  if (!input.items && input.portfolio) return slicePage(items, offset, limit);
+  if (!input.items && (input.portfolio || input.projects)) return slicePage(items, offset, limit);
   return pageResult(items, input, offset, limit);
 }
 
@@ -571,6 +664,46 @@ function toBoolean(value: unknown, fallback = false): boolean {
   return !["false", "nee", "no", "0", "uit", "inactive"].includes(
     String(value).trim().toLowerCase(),
   );
+}
+
+function getCachedProducts(): ProductItem[] {
+  const initial = normalizeSiteData(readStorageJson("vanappiah_site_initial")).producten || [];
+  const infinite = readStorageJson("vanappiah_products_infinite");
+  const pages = asRecord(infinite)?.pages;
+  const pageItems = Array.isArray(pages)
+    ? pages.flatMap((page) => normalizeRows(asRecord(page)?.items, normalizeProduct))
+    : [];
+  return uniqueByPublicId([...initial, ...pageItems], getProductId);
+}
+
+function getCachedPortfolio(): PortfolioItem[] {
+  const initial = normalizeSiteData(readStorageJson("vanappiah_site_initial")).portfolio || [];
+  const infinite = readStorageJson("vanappiah_portfolio_infinite");
+  const pages = asRecord(infinite)?.pages;
+  const pageItems = Array.isArray(pages)
+    ? pages.flatMap((page) => normalizeRows(asRecord(page)?.items, normalizePortfolio))
+    : [];
+  return uniqueByPublicId([...initial, ...pageItems], getPortfolioId);
+}
+
+function readStorageJson(key: string): unknown {
+  if (typeof window === "undefined") return undefined;
+  try {
+    const value = window.localStorage.getItem(key);
+    return value ? JSON.parse(value) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function uniqueByPublicId<T>(items: T[], getId: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    const id = getId(item);
+    if (!id || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
 }
 
 // ---------- Helpers ----------

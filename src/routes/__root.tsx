@@ -78,14 +78,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       ...seo({
-        title: "Website laten maken Amsterdam-Noord | Van Appiah",
+        title: "Websites, webshops en marketing | Van Appiah",
         description:
-          "Van Appiah helpt ondernemers in Amsterdam-Noord met professionele websites, webshops, branding, marketing en online groei.",
+          "Van Appiah is gevestigd in Amsterdam-Noord en helpt bedrijven in Amsterdam en heel Nederland met websites, webshops, branding, marketing en online groei.",
         keywords: [
           "website laten maken Amsterdam Noord",
+          "website laten maken Amsterdam",
+          "website laten maken Nederland",
           "webdesigner Amsterdam",
           "marketing bureau Amsterdam Noord",
+          "marketing voor bedrijven",
           "Van Appiah",
+          "VA",
         ],
         jsonLd: [organizationSchema(), websiteSchema(), localBusinessSchema()],
       }).meta,

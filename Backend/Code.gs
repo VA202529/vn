@@ -22,10 +22,10 @@ const SHEET_HEADERS = {
   Bedrijfsgegevens: ['id', 'bedrijfsnaam', 'slogan', 'beschrijving', 'adres', 'telefoonnummer', 'email_1', 'email_2', 'email_3', 'openingstijd_1', 'openingstijd_2', 'openingstijd_3', 'instagram', 'tiktok', 'linkedin', 'website', 'actief'],
   Portfolio: ['id', 'titel', 'slug', 'beschrijving', 'klantnaam', 'categorie', 'mapNaam', 'driveFolderId', 'zichtbaar', 'volgorde', 'aangemaakt_op', 'bijgewerkt_op'],
   Producten: ['id', 'titel', 'slug', 'beschrijving', 'categorie', 'prijs_vanaf', 'onderhoud_eenmalig', 'onderhoud_per_maand', 'onderhoud_uitleg', 'mapNaam', 'driveFolderId', 'zichtbaar', 'volgorde', 'aangemaakt_op', 'bijgewerkt_op'],
-  Berichten: ['id', 'voornaam', 'achternaam', 'email', 'telefoonnummer', 'onderwerp', 'bericht', 'status', 'aangemaakt_op'],
-  Offertes: ['id', 'voornaam', 'achternaam', 'bedrijfsnaam', 'adres', 'telefoonnummer', 'email', 'gewenste_dienst', 'budget', 'beschrijving_project', 'status', 'aangemaakt_op'],
-  Mailabonnement: ['id', 'email', 'naam', 'status', 'aangemeld_op'],
-  ProductAanvragen: ['id', 'product_id', 'product_titel', 'voornaam', 'achternaam', 'adres', 'telefoonnummer', 'email', 'bedrijfsnaam', 'extra_informatie', 'status', 'aangemaakt_op'],
+  Berichten: ['id', 'voornaam', 'achternaam', 'email', 'telefoonnummer', 'onderwerp', 'bericht', 'status', 'mail_status', 'aangemaakt_op'],
+  Offertes: ['id', 'voornaam', 'achternaam', 'bedrijfsnaam', 'adres', 'telefoonnummer', 'email', 'gewenste_dienst', 'budget', 'beschrijving_project', 'status', 'mail_status', 'aangemaakt_op'],
+  Mailabonnement: ['id', 'email', 'naam', 'status', 'mail_status', 'aangemeld_op'],
+  ProductAanvragen: ['id', 'product_id', 'product_titel', 'voornaam', 'achternaam', 'adres', 'telefoonnummer', 'email', 'bedrijfsnaam', 'extra_informatie', 'status', 'mail_status', 'aangemaakt_op'],
   Leads: ['ID', 'Bedrijfsnaam', 'Contactpersoon', 'Email', 'Telefoonnummer', 'Website', 'ProductInteresse', 'PortfolioVoorbeeld', 'Status', 'TypeMail', 'LaatstGecontacteerd', 'VolgendeActieDatum', 'Notities', 'AangemaaktOp'],
   Klanten: ['ID', 'Klantnaam', 'Bedrijfsnaam', 'Contactpersoon', 'Email', 'Telefoonnummer', 'ProjectType', 'ProjectBeschrijving', 'GedaanWerk', 'WebsiteOfSysteemKostenTotaal', 'BetaaldBedrag', 'NogTeBetalen', 'OnderhoudPerMaand', 'OnderhoudBetaaldTot', 'TikkieLinkDezeMaand', 'BetaalStatus', 'LaatsteUpdateMail', 'Notities', 'AangemaaktOp']
 };
@@ -40,7 +40,6 @@ function doGet(e) {
 }
 
 function doPost(e) {
-  setupVanAppiahSite();
   try {
     const payload = parsePostPayload_(e);
     return jsonOutput_(apiRequest(payload));
@@ -50,7 +49,6 @@ function doPost(e) {
 }
 
 function apiRequest(payload) {
-  setupVanAppiahSite();
   try {
     const action = clean_(payload.action);
     const data = payload.data || payload;
@@ -248,7 +246,6 @@ function getProductImagesPublic(params) {
 
 function submitMessage(data) {
   try {
-    setupVanAppiahSite();
     data = sanitizeObject_(data);
     requireFields_(data, ['voornaam', 'email', 'bericht']);
     assertEmail_(data.email);
@@ -261,11 +258,10 @@ function submitMessage(data) {
       onderwerp: data.onderwerp || 'Bericht via website',
       bericht: data.bericht,
       status: 'Nieuw',
+      mail_status: 'pending',
       aangemaakt_op: now_()
     };
     appendObject_(APP.MESSAGES_SHEET, row);
-    sendMail_('message_customer', row.email, row);
-    sendMail_('message_admin', getAdminEmail_(), row);
     return success_({ message: 'Bedankt, je bericht is verzonden.' });
   } catch (err) {
     return fail_(err);
@@ -274,7 +270,6 @@ function submitMessage(data) {
 
 function submitQuote(data) {
   try {
-    setupVanAppiahSite();
     data = sanitizeObject_(data);
     requireFields_(data, ['voornaam', 'email', 'gewenste_dienst', 'beschrijving_project']);
     assertEmail_(data.email);
@@ -290,11 +285,10 @@ function submitQuote(data) {
       budget: data.budget,
       beschrijving_project: data.beschrijving_project,
       status: 'Nieuw',
+      mail_status: 'pending',
       aangemaakt_op: now_()
     };
     appendObject_(APP.QUOTES_SHEET, row);
-    sendMail_('quote_customer', row.email, row);
-    sendMail_('quote_admin', getAdminEmail_(), row);
     return success_({ message: 'Je offerteaanvraag is ontvangen.' });
   } catch (err) {
     return fail_(err);
@@ -303,7 +297,6 @@ function submitQuote(data) {
 
 function submitSubscriber(data) {
   try {
-    setupVanAppiahSite();
     data = sanitizeObject_(data);
     requireFields_(data, ['email']);
     assertEmail_(data.email);
@@ -312,10 +305,10 @@ function submitSubscriber(data) {
       email: data.email,
       naam: data.naam,
       status: 'Actief',
+      mail_status: 'pending',
       aangemeld_op: now_()
     };
     appendObject_(APP.SUBSCRIBERS_SHEET, row);
-    sendMail_('subscriber_welcome', row.email, row);
     return success_({ message: 'Je bent aangemeld voor updates.' });
   } catch (err) {
     return fail_(err);
@@ -324,7 +317,6 @@ function submitSubscriber(data) {
 
 function submitProductRequest(data) {
   try {
-    setupVanAppiahSite();
     data = sanitizeObject_(data);
     requireFields_(data, ['product_id', 'product_titel', 'voornaam', 'email']);
     assertEmail_(data.email);
@@ -340,15 +332,61 @@ function submitProductRequest(data) {
       bedrijfsnaam: data.bedrijfsnaam,
       extra_informatie: data.extra_informatie,
       status: 'Nieuw',
+      mail_status: 'pending',
       aangemaakt_op: now_()
     };
     appendObject_(APP.PRODUCT_REQUESTS_SHEET, row);
-    sendMail_('product_customer', row.email, row);
-    sendMail_('product_admin', getAdminEmail_(), row);
     return success_({ message: 'Je productaanvraag is ontvangen.' });
   } catch (err) {
     return fail_(err);
   }
+}
+
+function processPendingEmails() {
+  const ss = getSs_();
+  const processed = {
+    berichten: processPendingMailRows_(ss, APP.MESSAGES_SHEET, [
+      { type: 'message_customer', to: function (row) { return row.email; } },
+      { type: 'message_admin', to: function () { return getAdminEmail_(); } }
+    ]),
+    offertes: processPendingMailRows_(ss, APP.QUOTES_SHEET, [
+      { type: 'quote_customer', to: function (row) { return row.email; } },
+      { type: 'quote_admin', to: function () { return getAdminEmail_(); } }
+    ]),
+    abonnementen: processPendingMailRows_(ss, APP.SUBSCRIBERS_SHEET, [
+      { type: 'subscriber_welcome', to: function (row) { return row.email; } }
+    ]),
+    productAanvragen: processPendingMailRows_(ss, APP.PRODUCT_REQUESTS_SHEET, [
+      { type: 'product_customer', to: function (row) { return row.email; } },
+      { type: 'product_admin', to: function () { return getAdminEmail_(); } }
+    ])
+  };
+  return success_({ message: 'Openstaande e-mails verwerkt.', processed: processed });
+}
+
+function processPendingMailRows_(ss, sheetName, mailers) {
+  const sheet = getSheet_(ss, sheetName);
+  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0].map(String);
+  const mailIndex = headers.indexOf('mail_status');
+  if (mailIndex === -1) return 0;
+  const values = sheet.getDataRange().getValues();
+  let count = 0;
+  for (let i = 1; i < values.length; i++) {
+    const status = String(values[i][mailIndex] || '').toLowerCase();
+    if (status && status !== 'pending') continue;
+    const row = {};
+    headers.forEach(function (header, index) { row[header] = values[i][index]; });
+    try {
+      mailers.forEach(function (mailer) {
+        sendMail_(mailer.type, mailer.to(row), row);
+      });
+      sheet.getRange(i + 1, mailIndex + 1).setValue('sent');
+      count++;
+    } catch (err) {
+      sheet.getRange(i + 1, mailIndex + 1).setValue('error');
+    }
+  }
+  return count;
 }
 
 function adminLogin(username, password) {
@@ -767,6 +805,7 @@ function addQuoteByCode_(data) {
     budget: data.budget,
     beschrijving_project: data.beschrijving_project,
     status: data.status || 'Nieuw',
+    mail_status: 'pending',
     aangemaakt_op: now_()
   };
   withLock_(function () { appendObject_(APP.QUOTES_SHEET, row); });
@@ -782,6 +821,7 @@ function addSubscriberByCode_(data) {
     email: data.email,
     naam: data.naam,
     status: data.status || 'Actief',
+    mail_status: truthy_(data.stuur_welkomstmail) ? 'sent' : 'pending',
     aangemeld_op: now_()
   };
   withLock_(function () { appendObject_(APP.SUBSCRIBERS_SHEET, row); });
@@ -842,13 +882,20 @@ function updateStatusByCode_(data) {
 function ensureSheet(ss, name, headers) {
   let sheet = ss.getSheetByName(name);
   if (!sheet) sheet = ss.insertSheet(name);
+  headers.forEach(function (header, index) {
+    const lastColumn = sheet.getLastColumn() || 1;
+    const current = sheet.getRange(1, 1, 1, Math.max(lastColumn, 1)).getValues()[0].map(String);
+    if (current.indexOf(header) !== -1) return;
+    const insertAt = Math.min(index + 1, lastColumn + 1);
+    if (insertAt <= lastColumn) sheet.insertColumnBefore(insertAt);
+    else sheet.insertColumnAfter(lastColumn);
+    sheet.getRange(1, insertAt).setValue(header);
+  });
   const current = sheet.getRange(1, 1, 1, Math.max(headers.length, sheet.getLastColumn() || 1)).getValues()[0];
   const same = headers.every(function (header, index) { return current[index] === header; });
-  if (!same) {
-    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-    sheet.setFrozenRows(1);
-    sheet.autoResizeColumns(1, headers.length);
-  }
+  if (!same) sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.setFrozenRows(1);
+  sheet.autoResizeColumns(1, headers.length);
   return sheet;
 }
 

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { postAction, getProductId, type ProductItem } from "@/lib/api";
 
@@ -90,10 +90,11 @@ export function ProductRequestDialog({ product, open, onOpenChange }: Props) {
             <DialogField label="Adres" value={form.adres} onChange={(v) => update("adres", v)} />
           </div>
           <div>
-            <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+            <label htmlFor="product-extra-informatie" className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
               Extra informatie
             </label>
             <textarea
+              id="product-extra-informatie"
               rows={3}
               value={form.extra_informatie}
               onChange={(e) => update("extra_informatie", e.target.value)}
@@ -138,13 +139,15 @@ function DialogField({
   type?: string;
   required?: boolean;
 }) {
+  const id = useId();
   return (
     <div>
-      <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+      <label htmlFor={id} className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
         {label}
         {!required && <span className="ml-1 text-muted-foreground/60 normal-case">(optioneel)</span>}
       </label>
       <input
+        id={id}
         type={type}
         required={required}
         value={value}

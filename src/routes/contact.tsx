@@ -1,27 +1,32 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Section, Eyebrow } from "@/components/site/Section";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { toast } from "sonner";
 import { postAction } from "@/lib/api";
 import { useSiteData } from "@/hooks/use-site-data";
 import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/contact")({
-  head: () => ({
-    meta: [
-      ...seo({
-        title: "Contact Van Appiah | Website en marketing Amsterdam-Noord",
+  head: () => {
+    const tags = seo({
+        title: "Contact Van Appiah | Websites en marketing Nederland",
         description:
-          "Neem contact op met Van Appiah voor een website, webshop, branding of marketingtraject in Amsterdam-Noord en omgeving.",
+          "Neem contact op met Van Appiah voor een website, webshop, branding of marketingtraject in Amsterdam, Amsterdam-Noord of heel Nederland.",
         path: "/contact",
-        keywords: ["contact Van Appiah", "website laten maken Amsterdam Noord", "marketing bureau Amsterdam Noord"],
+        keywords: [
+          "contact Van Appiah",
+          "website laten maken Amsterdam Noord",
+          "website laten maken Amsterdam",
+          "marketing bureau Amsterdam",
+          "marketing voor bedrijven",
+        ],
         jsonLd: breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Contact", path: "/contact" },
         ]),
-      }).meta,
-    ],
-  }),
+      });
+    return tags;
+  },
   component: ContactPage,
 });
 
@@ -78,7 +83,7 @@ function ContactPage() {
           Laten we samen<br />iets bouwen.
         </h1>
         <p className="mt-5 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl">
-          Vertel ons over uw website, webshop, branding of marketingvraag. Wij reageren binnen een werkdag.
+          Vertel ons over uw website, webshop, branding of marketingvraag. Vanuit Amsterdam-Noord reageren wij op ondernemers in Amsterdam en door heel Nederland.
         </p>
       </Section>
 
@@ -112,10 +117,11 @@ function ContactPage() {
                 </div>
                 <Field label="Onderwerp" value={form.onderwerp} onChange={(v) => update("onderwerp", v)} />
                 <div>
-                  <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+                  <label htmlFor="contact-bericht" className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
                     Bericht
                   </label>
                   <textarea
+                    id="contact-bericht"
                     required
                     rows={5}
                     value={form.bericht}
@@ -181,13 +187,15 @@ function Field({
   type?: string;
   required?: boolean;
 }) {
+  const id = useId();
   return (
     <div>
-      <label className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
+      <label htmlFor={id} className="block text-xs font-medium uppercase tracking-widest text-muted-foreground mb-2">
         {label}
         {!required && <span className="ml-1 text-muted-foreground/60 normal-case">(optioneel)</span>}
       </label>
       <input
+        id={id}
         type={type}
         required={required}
         value={value}

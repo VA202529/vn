@@ -16,21 +16,31 @@ import { localBusinessSchema, seo, serviceSchema } from "@/lib/seo";
 export const Route = createFileRoute("/")({
   head: () =>
     seo({
-      title: "Websites en marketing Amsterdam-Noord | Van Appiah",
+      title: "Websites, webshops en marketing Nederland | Van Appiah",
       description:
-        "Van Appiah helpt ondernemers in Amsterdam-Noord met professionele websites, webshops, branding, social media marketing en online groei.",
+        "Van Appiah maakt websites, webshops en marketing voor bedrijven in Amsterdam, Amsterdam-Noord en heel Nederland.",
       keywords: [
         "website laten maken Amsterdam Noord",
+        "website laten maken Amsterdam",
+        "website laten maken Nederland",
+        "website laten maken voor bedrijf",
+        "professionele website laten maken",
         "webdesigner Amsterdam Noord",
+        "webdesigner Amsterdam",
         "marketing bureau Amsterdam Noord",
+        "marketing bureau Amsterdam",
+        "marketing voor bedrijven",
+        "social media marketing voor bedrijven",
         "webshop laten maken Amsterdam",
+        "webshop laten maken",
         "VA websites",
+        "Van Appiah marketing",
       ],
       jsonLd: [
         localBusinessSchema(),
         serviceSchema(
           "Websites en marketing voor bedrijven",
-          "Professionele websites, webshops, branding en marketing voor ondernemers in Amsterdam-Noord en omgeving.",
+          "Professionele websites, webshops, branding en marketing voor bedrijven in Amsterdam, Amsterdam-Noord en heel Nederland.",
           "/",
         ),
       ],
@@ -70,14 +80,14 @@ function Index() {
           <div className="relative max-w-4xl px-6 py-14 sm:px-10 sm:py-20 md:px-16 md:py-24">
             <Eyebrow className="text-background/65">VA</Eyebrow>
             <h1 className="mt-5 text-5xl font-semibold tracking-tight leading-[0.95] sm:text-6xl md:text-8xl">
-              Websites en marketing voor bedrijven in Amsterdam-Noord.
+              Websites, webshops en marketing voor bedrijven in Amsterdam en heel Nederland.
             </h1>
             <p className="mt-6 max-w-2xl text-xl font-medium text-background/95">
-              {name} helpt ondernemers met professionele websites, webshops, branding en marketing die vertrouwen uitstralen en klanten opleveren.
+              Vanuit Amsterdam-Noord helpt {name} ondernemers door heel Nederland met professionele websites, webshops, branding en marketing die vertrouwen uitstralen en klanten opleveren.
             </p>
             <p className="mt-4 max-w-2xl text-base leading-relaxed text-background/75 sm:text-lg">
               {company?.beschrijving ||
-                "Van lokale bedrijven en salons tot kledingmerken en artiesten: wij bouwen digitale oplossingen die helder voelen, snel laden en klaar zijn om te groeien."}
+                "Voor lokale ondernemers in Amsterdam en bedrijven door heel Nederland bouwen wij digitale oplossingen die helder voelen, snel laden en klaar zijn om te groeien."}
             </p>
             <div className="mt-9 flex flex-wrap gap-3">
               <Link
@@ -141,7 +151,7 @@ function Index() {
               Alles voor een sterke online uitstraling.
             </h2>
             <p className="mt-4 text-muted-foreground">
-              Van Appiah combineert webdesign, techniek, branding en marketing voor ondernemers in Amsterdam-Noord en omgeving.
+              Van Appiah combineert webdesign, techniek, branding en marketing voor ondernemers in Amsterdam, Amsterdam-Noord en heel Nederland.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link to="/diensten" className="rounded-full bg-foreground px-5 py-2.5 text-sm font-medium text-background hover:opacity-90">
@@ -299,7 +309,7 @@ function Index() {
           {[
             ["Modern en rustig", "Een luxe, minimalistische uitstraling die past bij bedrijven die serieus genomen willen worden."],
             ["Gebouwd voor resultaat", "Heldere pagina's, snelle laadtijden en duidelijke call-to-actions richting contact of offerte."],
-            ["Lokaal betrokken", "Focus op ondernemers in Amsterdam-Noord, Amsterdam en Noord-Holland met korte lijnen en persoonlijk advies."],
+            ["Lokaal gevestigd, landelijk actief", "Gevestigd in Amsterdam-Noord, actief voor bedrijven in Amsterdam en heel Nederland met korte lijnen en persoonlijk advies."],
           ].map(([title, text]) => (
             <article key={title} className="rounded-3xl border border-border p-7">
               <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
@@ -316,7 +326,7 @@ function Index() {
             Website laten maken in Amsterdam-Noord door Van Appiah.
           </h2>
           <p className="mt-5 max-w-3xl text-background/75">
-            Voor lokale ondernemers is een goede website vaak het eerste vertrouwensmoment. Van Appiah helpt bedrijven in Amsterdam-Noord met webdesign, webshops, branding en marketing die professioneel voelt en makkelijk contact oplevert.
+            Voor lokale ondernemers is een goede website vaak het eerste vertrouwensmoment. Vanuit Amsterdam-Noord helpt Van Appiah bedrijven in Amsterdam en door heel Nederland met webdesign, webshops, branding en marketing die professioneel voelt en makkelijk contact oplevert.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/websites-laten-maken-amsterdam-noord" className="rounded-full bg-background px-5 py-2.5 text-sm font-medium text-foreground hover:opacity-90">

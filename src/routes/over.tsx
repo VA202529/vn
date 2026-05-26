@@ -3,21 +3,28 @@ import { Section, Eyebrow } from "@/components/site/Section";
 import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/over")({
-  head: () => ({
-    meta: [
-      ...seo({
-        title: "Over Van Appiah | Webdesign en marketing Amsterdam-Noord",
+  head: () => {
+    const tags = seo({
+        title: "Over Van Appiah | Websites en marketing Nederland",
         description:
-          "Leer Van Appiah kennen: VA helpt ondernemers met websites, webshops, branding, marketing en digitale systemen in Amsterdam-Noord.",
+          "Leer Van Appiah kennen: VA is gevestigd in Amsterdam-Noord en helpt ondernemers in Amsterdam en heel Nederland met websites, webshops, branding, marketing en digitale systemen.",
         path: "/over",
-        keywords: ["Van Appiah", "VA websites", "webdesigner Amsterdam Noord"],
+        keywords: [
+          "Van Appiah",
+          "VA",
+          "VA websites",
+          "Van Appiah websites",
+          "Van Appiah marketing",
+          "webdesigner Amsterdam Noord",
+          "website laten maken Nederland",
+        ],
         jsonLd: breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Over Van Appiah", path: "/over" },
         ]),
-      }).meta,
-    ],
-  }),
+      });
+    return tags;
+  },
   component: OverPage,
 });
 
@@ -53,7 +60,7 @@ function OverPage() {
             Van statische websites naar complete digitale ecosystemen.
           </h2>
           <p className="mt-6 text-lg text-muted-foreground">
-          Wat begon met het bouwen van websites is uitgegroeid tot een bredere aanpak voor online groei. Van Appiah helpt ondernemers met websites, webshops, branding, marketing en systemen die dagelijks werk makkelijker maken.
+          Wat begon met het bouwen van websites is uitgegroeid tot een bredere aanpak voor online groei. Vanuit Amsterdam-Noord helpt Van Appiah ondernemers in Amsterdam en heel Nederland met websites, webshops, branding, marketing en systemen die dagelijks werk makkelijker maken.
           </p>
         </div>
       </Section>

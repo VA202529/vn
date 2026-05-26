@@ -17,22 +17,27 @@ import {
 import { breadcrumbSchema, seo } from "@/lib/seo";
 
 export const Route = createFileRoute("/producten/$slug")({
-  head: ({ params }) => ({
-    meta: [
-      ...seo({
+  head: ({ params }) => {
+    const tags = seo({
         title: "Digitale oplossing bekijken | Van Appiah",
         description:
           "Bekijk deze website, webshop of digitale oplossing van Van Appiah en vraag direct meer informatie of een offerte aan.",
         path: `/producten/${params.slug}`,
-        keywords: ["website laten maken Amsterdam", "professionele website laten maken", "Van Appiah producten"],
+        keywords: [
+          "website laten maken Amsterdam",
+          "website laten maken Nederland",
+          "professionele website laten maken",
+          "webshop laten maken",
+          "Van Appiah producten",
+        ],
         jsonLd: breadcrumbSchema([
           { name: "Home", path: "/" },
           { name: "Producten", path: "/producten" },
           { name: params.slug, path: `/producten/${params.slug}` },
         ]),
-      }).meta,
-    ],
-  }),
+      });
+    return tags;
+  },
   component: ProductDetail,
 });
 

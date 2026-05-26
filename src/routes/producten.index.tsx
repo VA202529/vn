@@ -9,14 +9,19 @@ import { formatPriceFrom, getProductDetail, getProductId, type ProductItem } fro
 import { breadcrumbSchema, seo, serviceSchema } from "@/lib/seo";
 
 export const Route = createFileRoute("/producten/")({
-  head: () => ({
-    meta: [
-      ...seo({
+  head: () => {
+    const tags = seo({
         title: "Producten en digitale oplossingen | Van Appiah",
         description:
-          "Bekijk websites, webshops, automatisering en digitale systemen van Van Appiah voor ondernemers in Amsterdam en Amsterdam-Noord.",
+          "Bekijk websites, webshops, automatisering en digitale systemen van Van Appiah voor bedrijven in Amsterdam en heel Nederland.",
         path: "/producten",
-        keywords: ["professionele website laten maken", "webshop laten maken Amsterdam", "digitale systemen ondernemers"],
+        keywords: [
+          "professionele website laten maken",
+          "webshop laten maken",
+          "website laten maken Nederland",
+          "digitale systemen ondernemers",
+          "webdesign voor ondernemers",
+        ],
         jsonLd: [
           serviceSchema(
             "Digitale producten en oplossingen",
@@ -28,9 +33,9 @@ export const Route = createFileRoute("/producten/")({
             { name: "Producten", path: "/producten" },
           ]),
         ],
-      }).meta,
-    ],
-  }),
+      });
+    return tags;
+  },
   component: ProductenPage,
 });
 
@@ -69,7 +74,7 @@ function ProductenPage() {
           Onze digitale<br />producten & oplossingen.
         </h1>
         <p className="mt-5 sm:mt-6 text-base sm:text-lg text-muted-foreground max-w-2xl">
-          Een overzicht van websites, webshops en digitale systemen die Van Appiah kan inrichten voor ondernemers in Amsterdam-Noord en omgeving.
+          Een overzicht van websites, webshops en digitale systemen die Van Appiah vanuit Amsterdam-Noord kan inrichten voor ondernemers in Amsterdam en heel Nederland.
         </p>
       </Section>
 
@@ -98,7 +103,7 @@ function ProductenPage() {
 
       <Section className="pb-16 md:pb-20">
         {isLoading && items.length === 0 && <LoadingGrid />}
-        {isError && (
+        {isError && items.length === 0 && (
           <p className="text-center text-muted-foreground py-16">
             De producten kunnen tijdelijk niet worden geladen.
           </p>
@@ -109,7 +114,7 @@ function ProductenPage() {
           </p>
         )}
 
-        {!isLoading && !isError && filtered.length > 0 && (
+        {!isLoading && filtered.length > 0 && (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
             {filtered.map((p, index) => {
               const id = getProductId(p);
