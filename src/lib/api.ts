@@ -235,28 +235,6 @@ export async function postAction(payload: ActionPayload): Promise<void> {
   await postFormAction(payload.action, payload.data);
 }
 
-/* Removed legacy fire-and-forget form post.
-  // Gebruik text/plain om CORS-preflight bij Apps Script te vermijden.
-  // Als we de response niet kunnen lezen, beschouwen we een afgeronde
-  // request als succesvol — Apps Script kan strikte CORS opleggen.
-  try {
-    const res = await fetch(WEB_APP_URL, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify(payload),
-    });
-    // We hoeven de body niet te lezen — als de request voltooid is, is dat genoeg.
-    if (res.type !== "opaque" && !res.ok) {
-      // Sommige Apps Script-deployments geven 0/opaque terug; alleen echte HTTP-fouten zien we hier.
-      throw new Error(`status_${res.status}`);
-    }
-  } catch (err) {
-    // Bij netwerkfout met CORS kunnen we soms toch een succesvolle verwerking hebben,
-    // maar we kunnen het niet bevestigen. We gooien door zodat de UI feedback kan geven.
-    throw err instanceof Error ? err : new Error("network");
-  }
-*/
-
 async function postFormAction(action: ActionPayload["action"], data: Record<string, string>): Promise<unknown> {
   const body = JSON.stringify({ action, data });
   if (typeof window !== "undefined") return postOpaqueFormAction(body);
@@ -282,27 +260,6 @@ async function postOpaqueFormAction(body: string): Promise<{ ok: true }> {
 
   await delay(650);
   return { ok: true };
-
-  const controller = typeof AbortController === "undefined" ? undefined : new AbortController();
-  const timeout = controller ? setTimeout(() => controller.abort(), 12000) : undefined;
-
-  try {
-    await fetch(WEB_APP_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body,
-      signal: controller?.signal,
-    });
-    return { ok: true };
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") {
-      throw new Error("Verzenden duurde te lang. Probeer het opnieuw.");
-    }
-    throw err instanceof Error ? err : new Error("Verzenden mislukt");
-  } finally {
-    if (timeout) clearTimeout(timeout);
-  }
 }
 
 async function postReadableFormAction(body: string): Promise<unknown> {
