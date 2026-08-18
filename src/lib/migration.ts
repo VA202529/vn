@@ -13,10 +13,8 @@ export const MIGRATION_REDIRECTS: Record<string, string> = {
   "/contact": "/contact",
   "/diensten": "/diensten",
   "/portfolio": "/portfolio",
-  "/offerte": "/offerte",
-  "/producten": "/producten",
-  "/websites-laten-maken-amsterdam-noord": "/websites-laten-maken-amsterdam-noord",
-  "/marketing-amsterdam-noord": "/marketing-amsterdam-noord",
+  "/offerte": "/contact",
+  "/producten": "/diensten",
 };
 
 export function normalizePathname(pathname: string): string {
