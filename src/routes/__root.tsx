@@ -1,7 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
-  Link,
   createRootRouteWithContext,
   useRouter,
   HeadContent,
@@ -9,31 +8,11 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { Header } from "@/components/site/Header";
-import { Footer } from "@/components/site/Footer";
-import { Toaster } from "@/components/ui/sonner";
-import { localBusinessSchema, organizationSchema, seo, websiteSchema } from "@/lib/seo";
+import { MigrationPage } from "@/routes/index";
+import { migrationSchema, seo } from "@/lib/seo";
 
 function NotFoundComponent() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Pagina niet gevonden</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          De pagina die je zoekt bestaat niet of is verplaatst.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-full bg-primary px-5 py-2.5 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            Naar home
-          </Link>
-        </div>
-      </div>
-    </div>
-  );
+  return <MigrationPage />;
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
@@ -78,27 +57,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { name: "robots", content: "index, follow, max-image-preview:large" },
       ...seo({
-        title: "Websites, webshops en marketing | Van Appiah",
+        title: "Van Appiah is nu Geheel Digitaal",
         description:
-          "Van Appiah is gevestigd in Amsterdam-Noord en helpt bedrijven in Amsterdam en heel Nederland met websites, webshops, branding, marketing en online groei.",
-        keywords: [
-          "website laten maken Amsterdam Noord",
-          "website laten maken Amsterdam",
-          "website laten maken Nederland",
-          "webdesigner Amsterdam",
-          "marketing bureau Amsterdam Noord",
-          "marketing voor bedrijven",
-          "Van Appiah",
-          "VA",
-        ],
-        jsonLd: [organizationSchema(), websiteSchema(), localBusinessSchema()],
+          "Van Appiah gaat verder onder de naam Geheel Digitaal. Bezoek de nieuwe website van Geheel Digitaal voor websites, software, automatisering, content en digitale dienstverlening.",
+        keywords: ["Van Appiah", "Geheel Digitaal", "websites", "software", "automatisering"],
+        jsonLd: migrationSchema(),
       }).meta,
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -126,14 +99,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen flex flex-col pt-4">
-        <Header />
-        <main className="flex-1">
-          <Outlet />
-        </main>
-        <Footer />
-      </div>
-      <Toaster position="top-center" />
+      <Outlet />
     </QueryClientProvider>
   );
 }

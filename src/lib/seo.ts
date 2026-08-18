@@ -1,4 +1,5 @@
-export const SITE_URL = "https://vanappiah.com";
+import { SITE_URL } from "@/lib/config";
+import { NEW_SITE_URL } from "@/lib/migration";
 
 export const SOCIAL_LINKS = [
   "https://www.instagram.com/van_appiah/",
@@ -16,7 +17,7 @@ export const SERVICE_TYPES = [
   "Digitale systemen",
 ];
 
-const AREA_SERVED = ["Amsterdam-Noord", "Amsterdam", "Noord-Holland", "Nederland"];
+const AREA_SERVED = ["Amsterdam", "Noord-Holland", "Nederland"];
 
 type SeoInput = {
   title: string;
@@ -42,12 +43,12 @@ export function seo({
     { title },
     { name: "description", content: description },
     { name: "keywords", content: keywords.join(", ") },
-    { name: "author", content: "Van Appiah" },
+    { name: "author", content: "Geheel Digitaal" },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:type", content: type },
     { property: "og:url", content: url },
-    { property: "og:site_name", content: "Van Appiah" },
+    { property: "og:site_name", content: "Geheel Digitaal" },
     { property: "og:locale", content: "nl_NL" },
     { property: "og:image", content: image },
     { name: "twitter:card", content: "summary_large_image" },
@@ -64,6 +65,31 @@ export function seo({
   return {
     meta,
     links: [{ rel: "canonical", href: url }],
+  };
+}
+
+export function migrationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Geheel Digitaal",
+    alternateName: "Van Appiah",
+    url: NEW_SITE_URL,
+    identifier: [
+      {
+        "@type": "PropertyValue",
+        propertyID: "KVK",
+        value: "42112775",
+      },
+      {
+        "@type": "PropertyValue",
+        propertyID: "Vestigingsnummer",
+        value: "000066163560",
+      },
+    ],
+    legalName: "Geheel Digitaal",
+    description:
+      "Van Appiah gaat verder onder de officiele handelsnaam Geheel Digitaal voor websites, software, automatisering, content en digitale dienstverlening.",
   };
 }
 
@@ -93,11 +119,6 @@ export function websiteSchema() {
     alternateName: "VA websites",
     url: SITE_URL,
     inLanguage: "nl-NL",
-    potentialAction: {
-      "@type": "SearchAction",
-      target: `${SITE_URL}/producten?zoek={search_term_string}`,
-      "query-input": "required name=search_term_string",
-    },
   };
 }
 
@@ -112,7 +133,7 @@ export function localBusinessSchema() {
     sameAs: SOCIAL_LINKS,
     priceRange: "€€",
     description:
-      "Van Appiah is gevestigd in Amsterdam-Noord en helpt bedrijven in Amsterdam en heel Nederland met websites, webshops, branding, marketing en digitale systemen.",
+      "Van Appiah is gevestigd in Amsterdam en helpt bedrijven in Amsterdam en heel Nederland met websites, webshops, branding, marketing en digitale systemen.",
     serviceType: SERVICE_TYPES,
   };
 }
